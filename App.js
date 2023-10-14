@@ -1,13 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet, Text, View, Button, TextInput, Pressable } from 'react-native';
+import { Platform, StyleSheet, Text, View, Button, TextInput, Pressable, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { BarCodeScanner } from 'expo-barcode-scanner';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import BottomSheet from '@gorhom/bottom-sheet';
+import { Camera, CameraType } from 'expo-camera';
 
 export default function App() {
-  const [hasPermission, setHasPermission] = useState(false);
+  const [hasPermission, setHasPermission] = Camera.useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [barcode, setBarcode] = useState('');
   const [itemName, setItemName] = useState('');
@@ -18,10 +18,8 @@ export default function App() {
   // refs
   const bottomSheetRef = useRef(null);
 
-  const handleOpenPress = () => bottomSheetRef.current.open()
-
   // variables
-  const snapPoints = useMemo(() => ['25%', '50%'], []);
+  const snapPoints = useMemo(() => ['50%'], []);
 
   const toggleDatePicker = () => {
     setShowDatePicker(!showDatePicker)
@@ -40,19 +38,10 @@ export default function App() {
     }
   }
 
-  useEffect(() => {
-    const getBarCodeScannerPermissions = async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === 'granted');
-    };
-
-    getBarCodeScannerPermissions();
-  }, [hasPermission]);
-
   const handleBarCodeScanned = (barcode) => {
     setScanned(true);
     setBarcode(barcode);
-    // alert(`Bar code with type ${barcode.type} and data ${barcode.data} has been scanned!`);
+    alert(`Bar code with type ${barcode.type} and data ${barcode.data} has been scanned!`);
   };
 
   if (hasPermission === null) {
@@ -67,6 +56,7 @@ export default function App() {
       <View style={styles.container}>
         {/* <StatusBar style="auto" /> */}
       </View>
+
       <Button
         style={StyleSheet.absoluteFillObject}
         title={'Add Items'}
@@ -74,7 +64,7 @@ export default function App() {
       <BottomSheet
         ref={bottomSheetRef}
         index={-1}
-        style={{...styles.shadow}}
+        style={{ ...styles.shadow }}
         snapPoints={snapPoints}
         enableContentPanningGesture={true}
         enablePanDownToClose={true}
@@ -82,11 +72,10 @@ export default function App() {
         <View style={styles.modalContainer}>
           <View style={{ flexDirection: 'row' }}>
             <View style={{ ...styles.topCenteredContainer, flex: 5 }}>
-              <BarCodeScanner
-                onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-                style={Platform.OS === 'android' ? { height: '80%', width: '80%' } :
-                  Platform.OS === 'ios' ? { height: '80%', width: '80%' } : {}}
-              />
+              <Camera
+                style={styles.camera}
+                type={CameraType.back}
+                onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}/>
             </View>
             <View style={{ ...styles.topLeftContainer, flex: 4 }}>
               {scanned &&
@@ -164,5 +153,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  camera: {
+    height: '80%',
+    width: '80%',
   }
 });
