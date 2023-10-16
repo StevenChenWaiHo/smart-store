@@ -217,7 +217,7 @@ export default function AddItemScreen() {
                             onPress={takePicture}
                             style={styles.takePhotoButton}>
                         </TouchableOpacity>}
-                    {!itemConfirmed &&
+                    {
                         <TouchableOpacity
                             onPress={handleNoCodeAddItem}
                             style={styles.addItemButton}>

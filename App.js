@@ -18,7 +18,11 @@ export default function App() {
   return (
     <NavigationContainer>
       <Tab.Navigator
-        tabBarPosition = {'bottom'}>
+        tabBarPosition={'bottom'}
+        screenOptions={{
+          swipeEnabled: false,
+        }}
+      >
         <Tab.Screen name="Add Item" component={AddItemScreen} />
         <Tab.Screen name="List" component={ItemListScreen} />
       </Tab.Navigator>
