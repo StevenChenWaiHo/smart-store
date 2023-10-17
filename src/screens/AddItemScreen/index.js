@@ -4,12 +4,11 @@ import { Platform, StyleSheet, Text, View, Button, TextInput, Pressable, Touchab
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import BottomSheet from '@gorhom/bottom-sheet';
-import { Camera, CameraType }
-    from 'expo-camera';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import BottomSheet, { useBottomSheetSpringConfigs } from '@gorhom/bottom-sheet';
+import { Easing } from 'react-native-reanimated';
+import { Camera, CameraType } from 'expo-camera';
 import { styles } from '../../styles/global/globalStyle'
-import defaultImage from '../../assets/images/noImage.png'
+import { Icon } from '@rneui/themed';
 
 export default function AddItemScreen() {
     const [hasPermission, setHasPermission] = Camera.useCameraPermissions();
@@ -18,56 +17,80 @@ export default function AddItemScreen() {
     const [itemName, setItemName] = useState('');
     const [date, setDate] = useState(new Date());
     const [dateString, setDateString] = useState('');
-    const [image, setImage] = useState('https://www.freeiconspng.com/uploads/no-image-icon-11.PNG');
+    const [image, setImage] = useState('https://cdn4.iconfinder.com/data/icons/picture-sharing-sites/32/No_Image-1024.png');
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [itemConfirmed, setItemConfirmed] = useState(false);
     const [takingPhoto, setTakingPhoto] = useState(false);
 
+    console.log('itemConfirmed', itemConfirmed)
+    console.log('scanned', scanned)
+
     const handleItemConfirm = () => {
-        setItemConfirmed(true);
         bottomSheetRef.current.expand();
     }
 
     const handleNoCodeAddItem = () => {
-        setItemConfirmed(true);
         bottomSheetRef.current.expand();
     }
 
     // Bottom Sheet
     const bottomSheetRef = useRef(null);
-    const snapPoints = useMemo(() => itemConfirmed ? ['100%'] : ['25%', '100%'], [itemConfirmed]);
+    const snapPoints = useMemo(() => itemConfirmed ? ['100%'] : scanned ? ['25%', '100%'] : ['100%'], [scanned, itemConfirmed]);
+    const animationConfigs = useBottomSheetSpringConfigs({
+        damping: 30,
+        overshootClamping: true,
+        restDisplacementThreshold: 0.1,
+        restSpeedThreshold: 0.1,
+        stiffness: 500,
+    });
 
-    const handleBottomSheetChanged = (pos) => {
-        console.log('Modal Current Position: ', pos)
-        if (itemConfirmed && takingPhoto) {
-            return;
+    const handleBottomSheetChanged = (toPos) => {
+        // Finish taking Photo
+        if (takingPhoto && toPos === 0) {
+            setTakingPhoto(false);
+            console.log('Finish taking Photo')
+            return
         }
-        // Discard scanned item after bottom sheet is closed
-        if (pos === -1) {
-            setScanned(false);
-            setItemConfirmed(false)
-            return;
+        // Item Confirmed when add button pressed
+        if (!itemConfirmed && !scanned && toPos === 0) {
+            setItemConfirmed(true)
+            console.log('Item Confirmed when add button pressed')
+            return
         }
         // Item Confirmed when swipe up after scanned
-        if (pos === 1 && scanned) {
+        if (!itemConfirmed && scanned && toPos === 1) {
             setItemConfirmed(true)
-            return;
+            console.log('Item Confirmed when swipe up after scanned')
+            return
         }
     }
+
+    const handleBottomSheetAnimated = useMemo((fromPos, toPos) => {
+        console.log('takingPhoto', takingPhoto)
+        if (takingPhoto) {
+            return
+        }
+        // Discard scanned item after bottom sheet is closed
+        if (!takingPhoto && toPos === -1) {
+            setScanned(false);
+            setItemConfirmed(false)
+            console.log('Discard scanned item after bottom sheet is closed')
+            return
+        }
+    }, [takingPhoto])
     // Camera
     const cameraRef = useRef(null);
 
     const takePicture = async () => {
         const picture = await cameraRef.current.takePictureAsync();
         setImage(picture.uri);
-        setTakingPhoto(false);
+        bottomSheetRef.current.expand();
 
         if (!itemConfirmed) {
             console.log('Item not confirmed when taking Photo')
             return
         }
 
-        bottomSheetRef.current.expand();
     }
 
     const handleBarCodeScanned = (barcode) => {
@@ -84,6 +107,7 @@ export default function AddItemScreen() {
     }
     const handleChangePhotoButton = () => {
         setTakingPhoto(true);
+        console.log('TAKGINGNG takingPhoto')
         bottomSheetRef.current.close();
     }
 
@@ -141,25 +165,31 @@ export default function AddItemScreen() {
     }
 
     const RenderBottomSheetWhenScanned = () => {
+        const itemName = 'Cheese'
         return (
-            <View style={styles.modalContainer}>
-                <View style={{ flexDirection: 'row' }}>
-                    <View style={{ ...styles.topCenteredContainer, flex: 2 }}>
-                        <TouchableOpacity
-                            style={styles.bottomSheetImageContainer}>
-                            <Image
-                                source={{ uri: image }}
-                                style={styles.bottomSheetImage} />
-                        </TouchableOpacity>
-                    </View>
-                    <View style={{ ...styles.topLeftContainer, flex: 4 }}>
-                        <Text>Code: {barcode.data}</Text>
-                        <Text>Item Name:</Text>
-                        <TextInput
-                            placeholder="Enter item name here"
-                            style={styles.input}
-                            value={itemName}
-                        />
+            <View style={styles.bottomSheetContainer}>
+                <View style={styles.minimizedBottomSheetContainer}>
+                    <View style={{ flexDirection: 'row' }}>
+                        <View style={{ ...styles.topCenteredContainer, flex: 2 }}>
+                            <TouchableOpacity
+                                style={styles.bottomSheetImageContainer}>
+                                <Image
+                                    source={{ uri: image }}
+                                    style={styles.bottomSheetImage} />
+                            </TouchableOpacity>
+                        </View>
+                        <View style={{ flex: 4 }}>
+                            <View style={styles.topLeftContainer}>
+                                <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
+                                <Text style={styles.bottomSheetBoldText}>{itemName}</Text>
+                            </View>
+                            <View style={styles.bottomRightContainer}>
+                                <Button
+                                    style={styles.bottomRightContainer}
+                                    onPress={handleItemConfirm}
+                                    title="Confirm" />
+                            </View>
+                        </View>
 
                     </View>
                 </View>
@@ -169,62 +199,55 @@ export default function AddItemScreen() {
     const RenderBottomSheetWhenItemConfirmed = () => {
         return (
             <>
-                <View style={styles.topLeftContainer}>
-                    <Button
-                        onPress={handleChangePhotoButton}
-                        title="Edit Image" />
+                <View style={styles.topCenteredContainer}>
                     <TouchableOpacity
-                        style={styles.bottomSheetImageContainer}
+                        style={styles.fullExpandedBottomSheetImageContainer}
                         onPress={handleChangePhotoButton}>
                         <Image
                             source={{ uri: image }}
-                            style={styles.bottomSheetImage} />
+                            style={styles.fullExpandedBottomSheetImage} />
                     </TouchableOpacity>
                 </View>
                 <View style={styles.topLeftContainer}>
-                    <Text>Code: {barcode.data}</Text>
-                    <Text>Item Name:</Text>
+                    <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
+                    <Text style={styles.bottomSheetBoldText} >Item Name:</Text>
                     <TextInput
-                        placeholder="Enter item name here"
-                        style={styles.input}
+                        placeholder="Enter Item Name Here"
+                        style={styles.bottomSheetBoldText}
                         value={itemName}
+                        onChange={setItemName}
                     />
-                    <Text>Date:</Text>
+                    <Text style={styles.bottomSheetBoldText}>Date:</Text>
                     <RenderDatePicker />
                 </View>
 
-                <View style={styles.bottomRightContainer}>
-                    {!itemConfirmed && <Button
+                <View style={styles.topCenteredContainer}>
+                    <Button
                         onPress={handleItemConfirm}
-                        title="YES" />}
+                        title="Add to List" />
                 </View>
             </>
         )
     }
 
+    const cameraButtonStyle = { ...styles.camera, alignItems: takingPhoto ? 'center' : 'flex-end' }
+
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
-            <View style={styles.container}>
+            <StatusBar hidden={true}/>
 
+            <View style={styles.container}>
                 <Camera
-                    style={styles.camera}
+                    style={cameraButtonStyle}
                     type={CameraType.back}
                     onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
                     ref={cameraRef}>
-                    {/* Take Photo Button */}
-                    {takingPhoto &&
-                        <TouchableOpacity
-                            onPress={takePicture}
-                            style={styles.takePhotoButton}>
-                        </TouchableOpacity>}
-                    {
-                        <TouchableOpacity
-                            onPress={handleNoCodeAddItem}
-                            style={styles.addItemButton}>
-                            <Image
-                            source={{ uri: 'https://icons.iconarchive.com/icons/iconsmind/outline/512/Add-icon.png' }}
-                            style={styles.bottomSheetImage} />
-                        </TouchableOpacity>}
+                    {/* Take Photo / Add Item Button */}
+                    <TouchableOpacity
+                        onPress={takingPhoto ? takePicture : handleNoCodeAddItem}
+                        style={takingPhoto ? styles.takePhotoButton : styles.addItemButton}>
+                        {takingPhoto ? <></> : <Icon name='add-circle' size={70} />}
+                    </TouchableOpacity>
 
                 </Camera>
 
@@ -233,15 +256,18 @@ export default function AddItemScreen() {
                     ref={bottomSheetRef}
                     index={-1}
                     snapPoints={snapPoints}
-                    enableContentPanningGesture={true}
-                    enablePanDownToClose={true}
-                    onChange={handleBottomSheetChanged}>
-                    {itemConfirmed ? (<RenderBottomSheetWhenItemConfirmed />) : scanned ? (<RenderBottomSheetWhenScanned />) : <></>}
+                    enablePanDownToClose={itemConfirmed || scanned}
+                    onAnimate={handleBottomSheetAnimated}
+                    onChange={handleBottomSheetChanged}
+                    animationConfigs={animationConfigs}
+                >
+                    {itemConfirmed ? (<RenderBottomSheetWhenItemConfirmed />) :
+                        scanned ? (<RenderBottomSheetWhenScanned />) : <><Button
+                            onPress={() => bottomSheetRef.current.close()}
+                            title="Cancel" /></>}
                 </BottomSheet>
 
             </View>
-
-
         </GestureHandlerRootView>
     );
 }

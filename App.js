@@ -10,6 +10,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import AddItemScreen from './src/screens/AddItemScreen';
 import ItemListScreen from './src/screens/ItemListScreen';
 import { NavigationContainer } from '@react-navigation/native';
+import { Icon } from '@rneui/base';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -20,11 +21,28 @@ export default function App() {
       <Tab.Navigator
         tabBarPosition={'bottom'}
         screenOptions={{
-          swipeEnabled: false,
+          swipeEnabled: false
         }}
+        shifting={true}
       >
-        <Tab.Screen name="Add Item" component={AddItemScreen} />
-        <Tab.Screen name="List" component={ItemListScreen} />
+        <Tab.Screen
+          name="Add Item"
+          component={AddItemScreen}
+          options={{
+            tabBarLabel: 'Add Item',
+            tabBarIcon: (({}) => (
+              <Icon name='add-shopping-cart'/>
+            ))
+          }}/>
+        <Tab.Screen
+          name="List"
+          component={ItemListScreen}
+          options={{
+            tabBarLabel: 'List',
+            tabBarIcon: (({}) => (
+              <Icon name='list'/>
+            ))
+          }}/>
       </Tab.Navigator>
     </NavigationContainer>
 

@@ -28,11 +28,25 @@ export const styles = StyleSheet.create({
     marginTop: -40,
     marginLeft: -10,
   },
-  modalContainer: {
+  bottomSheetContainer: {
     height: '100%',
     width: '100%',
     marginLeft: '5%',                              
-    marginRight: '5%'
+    marginRight: '5%',
+    padding: '5%',
+  },
+  bottomSheetBoldText: {
+    fontWeight: 'bold',
+    fontSize: 20,
+    width: '100%'
+  },
+  bottomSheetText: {
+    fontWeight: 'normal',
+    fontSize: 20
+  },
+  bottomSheetSmallText: {
+    fontWeight: 'normal',
+    fontSize: 10
   },
   shadow: {
     shadowColor: "#000",
@@ -48,14 +62,14 @@ export const styles = StyleSheet.create({
     height: '100%',
     width: '100%',
     justifyContent: 'flex-end',
-    alignItems: 'center',
   },
   takePhotoButton: {
     width: 70,
     height: 70,
     bottom: 0,
     borderRadius: 50,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
+    marginBottom: '1%'
   },
   addItemButton: {
     width: 70,
@@ -63,6 +77,17 @@ export const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 50,
     backgroundColor: '#fff',
+    marginBottom: '3%',
+    marginRight: '3%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addItemButtonIcon: {
+    width: 200,
+    height: 200,
+  },
+  minimizedBottomSheetContainer: {
+    height: '80%',
   },
   bottomSheetImageContainer: {
     width: '100%',
@@ -73,6 +98,22 @@ export const styles = StyleSheet.create({
   bottomSheetImage: {
     width: '100%',
     height: '100%',
+    resizeMode: 'contain',
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
+  ,
+  fullExpandedBottomSheetImageContainer: {
+    width: '100%',
+    height: '45%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: '10%',
+  },
+  fullExpandedBottomSheetImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
     justifyContent: 'center',
     alignItems: 'center',
   }
