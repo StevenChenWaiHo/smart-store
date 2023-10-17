@@ -9,6 +9,7 @@ import { Easing } from 'react-native-reanimated';
 import { Camera, CameraType } from 'expo-camera';
 import { styles } from '../../styles/global/globalStyle'
 import { Icon } from '@rneui/themed';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function AddItemScreen() {
     const [hasPermission, setHasPermission] = Camera.useCameraPermissions();
@@ -21,9 +22,10 @@ export default function AddItemScreen() {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [itemConfirmed, setItemConfirmed] = useState(false);
     const [takingPhoto, setTakingPhoto] = useState(false);
+    const focused = useIsFocused();
 
-    console.log('itemConfirmed', itemConfirmed)
-    console.log('scanned', scanned)
+    // console.log('itemConfirmed', itemConfirmed)
+    // console.log('scanned', scanned)
 
     const handleItemConfirm = () => {
         bottomSheetRef.current.expand();
@@ -233,42 +235,45 @@ export default function AddItemScreen() {
     const cameraButtonStyle = { ...styles.camera, alignItems: takingPhoto ? 'center' : 'flex-end' }
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
-            <StatusBar hidden={true}/>
-
-            <View style={styles.container}>
-                <Camera
-                    style={cameraButtonStyle}
-                    type={CameraType.back}
-                    onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-                    ref={cameraRef}>
-                    {/* Take Photo / Add Item Button */}
-                    <TouchableOpacity
-                        onPress={takingPhoto ? takePicture : handleNoCodeAddItem}
-                        style={takingPhoto ? styles.takePhotoButton : styles.addItemButton}>
-                        {takingPhoto ? <></> : <Icon name='add-circle' size={70} />}
-                    </TouchableOpacity>
-
-                </Camera>
+        <>
+            <StatusBar hidden={true} />
+            <GestureHandlerRootView style={{ flex: 1 }}>
 
 
-                <BottomSheet
-                    ref={bottomSheetRef}
-                    index={-1}
-                    snapPoints={snapPoints}
-                    enablePanDownToClose={itemConfirmed || scanned}
-                    onAnimate={handleBottomSheetAnimated}
-                    onChange={handleBottomSheetChanged}
-                    animationConfigs={animationConfigs}
-                >
-                    {itemConfirmed ? (<RenderBottomSheetWhenItemConfirmed />) :
-                        scanned ? (<RenderBottomSheetWhenScanned />) : <><Button
-                            onPress={() => bottomSheetRef.current.close()}
-                            title="Cancel" /></>}
-                </BottomSheet>
+                <View style={styles.container}>
+                    {focused &&
+                        <Camera
+                            style={cameraButtonStyle}
+                            type={CameraType.back}
+                            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+                            ref={cameraRef}>
+                            {/* Take Photo / Add Item Button */}
+                            <TouchableOpacity
+                                onPress={takingPhoto ? takePicture : handleNoCodeAddItem}
+                                style={takingPhoto ? styles.takePhotoButton : styles.addItemButton}>
+                                {takingPhoto ? <></> : <Icon name='add-circle' size={70} />}
+                            </TouchableOpacity>
+                        </Camera>}
 
-            </View>
-        </GestureHandlerRootView>
+
+                    <BottomSheet
+                        ref={bottomSheetRef}
+                        index={-1}
+                        snapPoints={snapPoints}
+                        enablePanDownToClose={itemConfirmed || scanned}
+                        onAnimate={handleBottomSheetAnimated}
+                        onChange={handleBottomSheetChanged}
+                        animationConfigs={animationConfigs}
+                    >
+                        {itemConfirmed ? (<RenderBottomSheetWhenItemConfirmed />) :
+                            scanned ? (<RenderBottomSheetWhenScanned />) : <><Button
+                                onPress={() => bottomSheetRef.current.close()}
+                                title="Cancel" /></>}
+                    </BottomSheet>
+
+                </View>
+            </GestureHandlerRootView>
+        </>
     );
 }
 

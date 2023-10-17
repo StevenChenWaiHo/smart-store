@@ -10,7 +10,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import AddItemScreen from './src/screens/AddItemScreen';
 import ItemListScreen from './src/screens/ItemListScreen';
 import { NavigationContainer } from '@react-navigation/native';
-import { Icon } from '@rneui/base';
+import { Icon } from '@rneui/themed';
 
 const Tab = createMaterialTopTabNavigator();
 
