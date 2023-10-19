@@ -8,27 +8,52 @@ import { useEffect, useState } from "react";
 import { styles } from "../../styles/global/globalStyle";
 import * as SQLite from 'expo-sqlite'
 
-export default function ItemListScreen() {
+export default function ItemListScreen({ route }) {
+  // const db = route.params.database;
   const db = SQLite.openDatabase('list.db');
+
 
   const [list, setList] = useState([])
   const [refreshing, setRefreshing] = useState(true);
 
-  useEffect(() => {
-    console.log(list)
-  }, [])
+  const updateList = (databaseList) => {
+    const itemToIndex = new Map();
+    const newList = [];
+    databaseList.forEach((entry, index) => {
+      const item = {
+        date: entry.date,
+        quantity: entry.quantity,
+        image: entry.image,
+      }
+      if (itemToIndex.has(entry.itemName)) {
+        newList[itemToIndex.get(entry.itemName)].dates.push(item);
+      } else {
+        const pushedToIndex = newList.push(
+          {
+            itemName: entry.itemName,
+            dates: [item]
+          }) - 1
+        itemToIndex.set(entry.itemName, pushedToIndex)
+      }
+    });
+    setList(newList);
+  }
+
 
   useEffect(() => {
-    db.transaction(tx => {
-      tx.executeSql(`CREATE TABLE IF NOT EXISTS list (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            itemName TEXT,
-            date TEXT)`)
-    })
+
+    // db.transaction(tx => {
+    //   tx.executeSql(`CREATE TABLE IF NOT EXISTS list (
+    //         id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    //         itemName TEXT,
+    //         date INTEGER,
+    //         quantity INTEGER,
+    //         image BLOB)`)
+    // })
 
     db.transaction(tx => {
-      tx.executeSql('SELECT * FROM list', null,
-        (txObj, resultList) => setList(resultList.rows._array),
+      tx.executeSql('SELECT * FROM list ORDER BY date', null,
+        (txObj, resultList) => updateList(resultList.rows._array),
         (txObj, error) => console.log(error))
     })
   })
@@ -120,7 +145,7 @@ export default function ItemListScreen() {
       <FlatList
         data={list}
         keyExtractor={(item, index) => index.toString()}
-        ItemSeparatorComponent={ItemSeparatorView}
+        includeseparatorComponent={ItemSeparatorView}
         enableEmptySections={true}
         renderItem={ItemView}
         refreshControl={
@@ -131,9 +156,9 @@ export default function ItemListScreen() {
           />}
       /> */}
 
-      {list.map((item) => (
+      {list.map((item, i) => (
         <ListItem.Swipeable
-          key={item?.id}
+          key={i}
           leftContent={(reset) => (
             <Button
               title="Info"
@@ -156,7 +181,11 @@ export default function ItemListScreen() {
             style={styles.bottomSheetImage} /> */}
           <ListItem.Content>
             <ListItem.Title>{item?.itemName}</ListItem.Title>
-            <ListItem.Title>{item?.date}</ListItem.Title>
+            <ListItem.Subtitle>
+              Date: {new Date(item?.dates?.[0].date).toDateString()}
+              {/* Sum of quantity of all items */}
+              Quantity: {item?.dates?.reduce((accumulator, currentValue) => accumulator + currentValue.quantity, 0)}
+            </ListItem.Subtitle>
           </ListItem.Content>
           <ListItem.Chevron />
         </ListItem.Swipeable>

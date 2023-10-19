@@ -11,10 +11,12 @@ import AddItemScreen from './src/screens/AddItemScreen';
 import ItemListScreen from './src/screens/ItemListScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import { Icon } from '@rneui/themed';
+import * as SQLite from 'expo-sqlite'
 
 const Tab = createMaterialTopTabNavigator();
 
 export default function App() {
+  const db = SQLite.openDatabase('list.db');
 
   return (
     <NavigationContainer>
@@ -28,6 +30,7 @@ export default function App() {
         <Tab.Screen
           name="Add Item"
           component={AddItemScreen}
+          initialParams={{database: db}}
           options={{
             tabBarLabel: 'Add Item',
             tabBarIcon: (({}) => (
@@ -37,6 +40,7 @@ export default function App() {
         <Tab.Screen
           name="List"
           component={ItemListScreen}
+          initialParams={{database: db}}
           options={{
             tabBarLabel: 'List',
             tabBarIcon: (({}) => (

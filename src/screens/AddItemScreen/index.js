@@ -14,14 +14,18 @@ import { useIsFocused } from '@react-navigation/native';
 import * as SQLite from 'expo-sqlite'
 
 
-export default function AddItemScreen() {
-    const db = SQLite.openDatabase('list.db');
+export default function AddItemScreen({ route }) {
+    // const db = route.params.database;
+  const db = SQLite.openDatabase('list.db');
+
+    if (!db) { console.log(db);  return <></>} 
     const [hasPermission, requestPermission] = Camera.useCameraPermissions();
     const [scanned, setScanned] = useState(false);
     const [barcode, setBarcode] = useState('');
     const [itemName, setItemName] = useState('');
+    const [quantity, setQuantity] = useState('');
     const [date, setDate] = useState(new Date());
-    const [dateString, setDateString] = useState(new Date());
+    const [dateString, setDateString] = useState('');
     const [image, setImage] = useState('https://cdn4.iconfinder.com/data/icons/picture-sharing-sites/32/No_Image-1024.png');
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [itemConfirmed, setItemConfirmed] = useState(false);
@@ -31,26 +35,33 @@ export default function AddItemScreen() {
     const item = {
         barcode,
         image,
-        dateString,
+        date: Math.floor(date.getTime()), // ios result in decimal number
         itemName,
+        quantity,
     }
 
     useEffect(() => {
+        // db.transaction(tx => {
+        //     tx.executeSql(`DROP TABLE IF EXISTS list`)
+        // })
+
         db.transaction(tx => {
             tx.executeSql(`CREATE TABLE IF NOT EXISTS list (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, 
                 itemName TEXT,
-                date TEXT)`)
+                date INTEGER,
+                quantity INTEGER,
+                image BLOB)`)
         })
     })
 
     const addItemToList = async (event) => {
         console.log(item)
         db.transaction(tx => {
-            tx.executeSql('INSERT INTO list (itemName, date) values (?, ?)', [itemName, date],
-              (txObj, resultList) => console.log('resultList', resultList),
-              (txObj, error) => console.log(error))
-          })
+            tx.executeSql('INSERT INTO list (itemName, date, quantity, image) values (?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image],
+                (txObj, resultList) => console.log('resultList', resultList),
+                (txObj, error) => console.log(error))
+        })
         // try {
         //     event.persist();
         //     // AsyncStorage.setItem('list', JSON.stringify([]))
@@ -198,7 +209,7 @@ export default function AddItemScreen() {
                             mode='date'
                             display={'calendar'}
                             value={date}
-                            onChange={onChangeDate}/>)
+                            onChange={onChangeDate} />)
                     }
                 </>);
         } else if (Platform.OS === 'ios') {
@@ -209,7 +220,7 @@ export default function AddItemScreen() {
                     display='compact'
                     value={date}
                     onChange={onChangeDate}
-                    style={styles.datePicker}/>)
+                    style={styles.datePicker} />)
         }
     }
 
@@ -260,6 +271,13 @@ export default function AddItemScreen() {
                     placeholder="Enter Item Name Here"
                     style={styles.bottomSheetBoldText}
                     onChangeText={(val) => setItemName(val)}
+                />
+                <Text style={styles.bottomSheetBoldText} >Quantity:</Text>
+                <TextInput
+                    inputMode='numeric'
+                    placeholder="Enter Quantity Here"
+                    style={styles.bottomSheetBoldText}
+                    onChangeText={(val) => setQuantity(val)}
                 />
                 <Text style={styles.bottomSheetBoldText}>Date:</Text>
                 <RenderDatePicker />
