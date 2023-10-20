@@ -17,6 +17,7 @@ import * as SQLite from 'expo-sqlite'
 export default function AddItemScreen({ route }) {
     // const db = route.params.database;
     const db = SQLite.openDatabase('list.db');
+    const defaultImage = 'https://cdn4.iconfinder.com/data/icons/picture-sharing-sites/32/No_Image-1024.png';
 
     const [firstLoad, setFirstLoad] = useState(true);
 
@@ -24,10 +25,10 @@ export default function AddItemScreen({ route }) {
     const [scanned, setScanned] = useState(false);
     const [barcode, setBarcode] = useState('');
     const [itemName, setItemName] = useState('');
-    const [quantity, setQuantity] = useState('');
+    const [quantity, setQuantity] = useState(1);
     const [date, setDate] = useState(new Date());
     const [dateString, setDateString] = useState('');
-    const [image, setImage] = useState('https://cdn4.iconfinder.com/data/icons/picture-sharing-sites/32/No_Image-1024.png');
+    const [image, setImage] = useState(defaultImage);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [itemConfirmed, setItemConfirmed] = useState(false);
     const [takingPhoto, setTakingPhoto] = useState(false);
@@ -40,13 +41,22 @@ export default function AddItemScreen({ route }) {
         itemName,
         quantity,
     }
+    
+    const resetItem = () => {
+        setScanned(false)
+        setItemConfirmed(false);
+        setItemName('');
+        setQuantity(1);
+        setImage(defaultImage);
+        bottomSheetRef.current.close();
+    }
 
     useEffect(() => {
-        // db.transaction(tx => {
-        //     tx.executeSql(`DROP TABLE IF EXISTS list`)
-        // })
-
         if (firstLoad) {
+            // db.transaction(tx => {
+            //     tx.executeSql(`DROP TABLE IF EXISTS list`)
+            // })
+
             db.transaction(tx => {
                 tx.executeSql(`CREATE TABLE IF NOT EXISTS list (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -60,28 +70,25 @@ export default function AddItemScreen({ route }) {
     }, [firstLoad])
 
     const addItemToList = async (event) => {
+        if (item.itemName === '') {
+            alert('Item Name cannot be empty')
+            return;
+        }
+
+        if (!item.quantity || item.quantity < 0) {
+            alert('Quantity cannot be empty or less than 0')
+            return;
+        }
         console.log(item)
         db.transaction(tx => {
             tx.executeSql('INSERT INTO list (itemName, date, quantity, image) values (?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image],
-                (txObj, resultList) => console.log('resultList', resultList),
+                (txObj, resultList) => {
+                    console.log('resultList', resultList);
+                    resetItem();
+                    alert(`Added Item - ${item.itemName}`)
+                },
                 (txObj, error) => console.log(error))
         })
-        // try {
-        //     event.persist();
-        //     // AsyncStorage.setItem('list', JSON.stringify([]))
-        //     AsyncStorage.getItem('list')
-        //         .then(list => {
-        //             const tempList = JSON.parse(list)
-        //             if (typeof tempList !== 'object') {
-        //                 throw 'list is not in a type list'
-        //             }
-        //             tempList.push(item);
-        //             AsyncStorage.setItem('list', JSON.stringify(tempList))
-        //                 .then(async i => alert(await AsyncStorage.getItem('list')))
-        //         });
-        // } catch (error) {
-        //     alert(error);
-        // }
     }
 
     const handleItemConfirm = () => {
@@ -130,8 +137,7 @@ export default function AddItemScreen({ route }) {
         }
         // Discard scanned item after bottom sheet is closed
         if (!takingPhoto && toPos === -1) {
-            setScanned(false);
-            setItemConfirmed(false)
+            resetItem();
             console.log('Discard scanned item after bottom sheet is closed')
             return
         }

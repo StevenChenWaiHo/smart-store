@@ -116,5 +116,17 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  itemListImage: {
+    width: 50,
+    height: 50,
+  }
+  ,
+  accordionListContainer: {
+    paddingLeft: 20
+  }
+  ,
+  listItemContent: {
+    marginLeft: 10
   }
 });
