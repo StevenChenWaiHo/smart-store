@@ -1,6 +1,6 @@
 
 import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet, Text, View, Button, TextInput, Pressable, TouchableOpacity, Image } from 'react-native';
+import { Platform, StyleSheet, Text, View, Button, TextInput, Pressable, TouchableOpacity, Image, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -12,6 +12,7 @@ import { Icon } from '@rneui/themed';
 import { useIsFocused } from '@react-navigation/native';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SQLite from 'expo-sqlite'
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
 
 export default function AddItemScreen({ route }) {
@@ -23,7 +24,7 @@ export default function AddItemScreen({ route }) {
 
     const [hasPermission, requestPermission] = Camera.useCameraPermissions();
     const [scanned, setScanned] = useState(false);
-    const [barcode, setBarcode] = useState('');
+    const [barcode, setBarcode] = useState(0);
     const [itemName, setItemName] = useState('');
     const [quantity, setQuantity] = useState(1);
     const [date, setDate] = useState(new Date());
@@ -32,23 +33,33 @@ export default function AddItemScreen({ route }) {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [itemConfirmed, setItemConfirmed] = useState(false);
     const [takingPhoto, setTakingPhoto] = useState(false);
+    const [barcodeKnown, setBarcodeKnown] = useState(false)
     const focused = useIsFocused();
 
     const item = {
-        barcode,
+        barcode: barcode.data,
         image,
         date: Math.floor(date.getTime()), // ios result in decimal number
         itemName,
         quantity,
     }
-    
+
     const resetItem = () => {
         setScanned(false)
+        setBarcodeKnown(false)
+        setBarcode(0)
         setItemConfirmed(false);
         setItemName('');
         setQuantity(1);
+        setDate(new Date());
         setImage(defaultImage);
-        bottomSheetRef.current.close();
+        bottomSheetRef.current.forceClose();
+    }
+
+    const updatedScannedItem = (item) => {
+        setItemName(item?.itemName);
+        setQuantity(item?.quantity);
+        setImage(item?.image);
     }
 
     useEffect(() => {
@@ -62,6 +73,13 @@ export default function AddItemScreen({ route }) {
                 id INTEGER PRIMARY KEY AUTOINCREMENT, 
                 itemName TEXT,
                 date INTEGER,
+                quantity INTEGER,
+                image BLOB)`)
+            })
+            db.transaction(tx => {
+                tx.executeSql(`CREATE TABLE IF NOT EXISTS barcodeMap (
+                barcode INTEGER PRIMARY KEY, 
+                itemName TEXT,
                 quantity INTEGER,
                 image BLOB)`)
             })
@@ -79,16 +97,32 @@ export default function AddItemScreen({ route }) {
             alert('Quantity cannot be empty or less than 0')
             return;
         }
-        console.log(item)
         db.transaction(tx => {
             tx.executeSql('INSERT INTO list (itemName, date, quantity, image) values (?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image],
                 (txObj, resultList) => {
-                    console.log('resultList', resultList);
                     resetItem();
                     alert(`Added Item - ${item.itemName}`)
                 },
                 (txObj, error) => console.log(error))
         })
+        console.log([item.barcode, item.itemName, item.quantity, item.image])
+        if (barcodeKnown) {
+            db.transaction(tx => {
+                tx.executeSql('UPDATE barcodeMap SET itemName = (?), quantity = (?), image = (?) WHERE barcode = (?)', [item.itemName, item.quantity, item.image, item.barcode],
+                    (txObj, resultList) => {
+                        console.log(resultList.rows)
+                    },
+                    (txObj, error) => console.log(error))
+            })
+        } else {
+            db.transaction(tx => {
+                tx.executeSql('INSERT INTO barcodeMap (barcode, itemName, quantity, image) values (?, ?, ?, ?)', [item.barcode, item.itemName, item.quantity, item.image],
+                    (txObj, resultList) => {
+                        console.log(resultList.rows)
+                    },
+                    (txObj, error) => console.log(error))
+            })
+        }
     }
 
     const handleItemConfirm = () => {
@@ -101,6 +135,7 @@ export default function AddItemScreen({ route }) {
 
     // Bottom Sheet
     const bottomSheetRef = useRef(null);
+
     const snapPoints = useMemo(() => itemConfirmed ? ['100%'] : scanned ? ['25%', '100%'] : ['100%'], [scanned, itemConfirmed]);
     const animationConfigs = useBottomSheetSpringConfigs({
         damping: 30,
@@ -132,12 +167,14 @@ export default function AddItemScreen({ route }) {
     }
 
     const handleBottomSheetAnimated = (fromPos, toPos) => {
+        Keyboard.dismiss()
         if (takingPhoto) {
             return
         }
         // Discard scanned item after bottom sheet is closed
         if (!takingPhoto && toPos === -1) {
             resetItem();
+            bottomSheetRef.current.forceClose();
             console.log('Discard scanned item after bottom sheet is closed')
             return
         }
@@ -154,25 +191,35 @@ export default function AddItemScreen({ route }) {
             console.log('Item not confirmed when taking Photo')
             return
         }
-
     }
 
     const handleBarCodeScanned = (barcode) => {
         setScanned(true);
         setBarcode(barcode);
+        db.transaction(tx => {
+            tx.executeSql('SELECT * FROM barcodeMap WHERE barcode = (?)', [barcode.data],
+                (txObj, resultList) => {
+                    console.log(resultList.rows)
+                    if (resultList.rows.length === 1) {
+                        setBarcodeKnown(true);
+                        updatedScannedItem(resultList.rows._array[0])
+                    }
+                    0
+                },
+                (txObj, error) => console.log(error))
+        })
         bottomSheetRef.current.snapToIndex(0)
     };
 
     useEffect(() => {
-        if (hasPermission === false) {
-            alert('No access to camera');
+        if (!hasPermission) {
+            Camera.requestCameraPermissionsAsync()
         }
     }, [hasPermission])
 
-
     useEffect(() => {
         if (takingPhoto) {
-            bottomSheetRef.current.close()
+            bottomSheetRef.current.forceClose()
         }
     }, [takingPhoto])
 
@@ -180,6 +227,32 @@ export default function AddItemScreen({ route }) {
         setTakingPhoto(true);
         console.log('Taking Photo')
     }
+
+    const RenderBottomSheetWhenScanned = (
+        <View style={styles.minimizedBottomSheetContainer}>
+            <View style={{ ...styles.topCenteredContainer, flex: 2 }}>
+                <Image
+                    source={{ uri: image }}
+                    style={styles.bottomSheetImage} />
+            </View>
+            <View style={{ flexDirection: 'column', flex: 4 }}>
+                <View style={{ ...styles.topLeftContainer, flex: 2 }}>
+                    <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
+                    <Text style={styles.bottomSheetBoldText}>{itemName || 'New Barcode'}</Text>
+                    <Text style={styles.bottomSheetBoldText}>Quantity: {quantity || 'New Barcode'}</Text>
+                </View>
+                <View style={{ ...styles.bottomRightContainer, flex: 1 }}>
+                    <Button
+                        onPress={handleItemConfirm}
+                        style={styles.button}
+                        title="Confirm" />
+                </View>
+            </View>
+        </View>)
+
+    const itemNameInput = useRef(null);
+    const quantityInput = useRef(null);
+    const dateInput = useRef(null)
 
     // Date
     const toggleDatePicker = () => {
@@ -226,124 +299,123 @@ export default function AddItemScreen({ route }) {
             // DatePicker for ios
             return (
                 <DateTimePicker
+                    focusable={true}
+                    autoFocus={true}
                     mode='date'
-                    display='compact'
+                    display='spinner'
                     value={date}
                     onChange={onChangeDate}
-                    style={styles.datePicker} />)
+                    style={styles.datePickerIos} />)
         }
     }
 
-    const RenderBottomSheetWhenScanned = (
-        <View style={styles.bottomSheetContainer}>
-            <View style={styles.minimizedBottomSheetContainer}>
-                <View style={{ flexDirection: 'row' }}>
-                    <View style={{ ...styles.topCenteredContainer, flex: 2 }}>
-                        <TouchableOpacity
-                            style={styles.bottomSheetImageContainer}>
-                            <Image
-                                source={{ uri: image }}
-                                style={styles.bottomSheetImage} />
-                        </TouchableOpacity>
-                    </View>
-                    <View style={{ flex: 4 }}>
-                        <View style={styles.topLeftContainer}>
-                            <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
-                            <Text style={styles.bottomSheetBoldText}>{itemName}</Text>
-                        </View>
-                        <View style={styles.bottomRightContainer}>
-                            <Button
-                                style={styles.bottomRightContainer}
-                                onPress={handleItemConfirm}
-                                title="Confirm" />
-                        </View>
-                    </View>
+    const RenderBottomSheetWhenItemConfirmed = (
+        <View style={styles.inputSheetContainer}>
 
+            <View style={{ ...styles.topCenteredContainer, flex: 2, flexDirection: 'row' }}>
+                <View style={{ ...styles.topCenteredContainer, flex: 1 }}>
+                    <TouchableOpacity
+                        style={styles.fullExpandedBottomSheetImageContainer}
+                        onPress={handleChangePhotoButton}>
+                        <Image
+                            source={{ uri: image }}
+                            style={styles.fullExpandedBottomSheetImage} />
+                    </TouchableOpacity>
+                </View>
+                <View style={{ ...styles.topLeftContainer, flex: 2 }}>
+                    <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
+                    <Text style={styles.inputLabel} >Item Name:</Text>
+                    <TextInput
+                        ref={itemNameInput}
+                        value={itemName}
+                        autoFocus={true}
+                        placeholder="Enter Item Name Here"
+                        style={styles.input}
+                        clearButtonMode='while-editing'
+                        enterKeyHint='done'
+                        onChangeText={(val) => setItemName(val)}
+                    />
                 </View>
             </View>
-        </View>)
-
-    const RenderBottomSheetWhenItemConfirmed = (
-        <>
-            <View style={styles.topCenteredContainer}>
-                <TouchableOpacity
-                    style={styles.fullExpandedBottomSheetImageContainer}
-                    onPress={handleChangePhotoButton}>
-                    <Image
-                        source={{ uri: image }}
-                        style={styles.fullExpandedBottomSheetImage} />
-                </TouchableOpacity>
-            </View>
-            <View style={styles.topLeftContainer}>
-                <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
-                <Text style={styles.bottomSheetBoldText} >Item Name:</Text>
-                <TextInput
-                    placeholder="Enter Item Name Here"
-                    style={styles.bottomSheetBoldText}
-                    onChangeText={(val) => setItemName(val)}
-                />
-                <Text style={styles.bottomSheetBoldText} >Quantity:</Text>
-                <TextInput
-                    inputMode='numeric'
-                    placeholder="Enter Quantity Here"
-                    style={styles.bottomSheetBoldText}
-                    onChangeText={(val) => setQuantity(val)}
-                />
-                <Text style={styles.bottomSheetBoldText}>Date:</Text>
+            <View style={{ ...styles.topLeftContainer, flex: 2 }}>
+                <Text style={styles.inputLabel}>Date:</Text>
                 <RenderDatePicker />
+                <Text style={styles.inputLabel} >Quantity:</Text>
+                <TextInput
+                    ref={quantityInput}
+                    value={quantity.toString()}
+                    inputMode='numeric'
+                    keyboardType='numeric'
+                    placeholder="Enter Quantity Here"
+                    clearButtonMode='while-editing'
+                    enterKeyHint='done'
+                    style={styles.input}
+                    onChangeText={(val) => setQuantity(val)} />
             </View>
 
-            <View style={styles.topCenteredContainer}>
-                <Button
-                    onPress={addItemToList}
-                    title="Add to List" />
+            <View style={{ ...styles.topCenteredContainer, flex: 1 }}>
+                <View style={{ flexDirection: 'row' }}>
+                    <View style={{ ...styles.buttonContainer, flex: 2 }}>
+                        <Button
+                            onPress={() => resetItem()}
+                            title="Cancel"
+                            style={styles.button} />
+                    </View>
+                    <View style={{ ...styles.buttonContainer, flex: 2 }}>
+                        <Button
+                            onPress={addItemToList}
+                            title="Add To List"
+                            style={styles.button} />
+                    </View>
+                </View>
+
             </View>
-        </>
+        </View>
     )
 
     const cameraButtonStyle = { ...styles.camera, alignItems: takingPhoto ? 'center' : 'flex-end' }
 
     return (
-        <>
-            <GestureHandlerRootView style={{ flex: 1 }}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
 
-                <StatusBar hidden={true} />
+            <StatusBar hidden={true} />
 
-                <View style={styles.container}>
-                    {focused &&
-                        <Camera
-                            style={cameraButtonStyle}
-                            type={CameraType.back}
-                            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-                            ref={cameraRef}>
-                            {/* Take Photo / Add Item Button */}
-                            <TouchableOpacity
-                                onPress={takingPhoto ? takePicture : handleNoCodeAddItem}
-                                style={takingPhoto ? styles.takePhotoButton : styles.addItemButton}>
-                                {takingPhoto ? <></> : <Icon name='add-circle' size={70} />}
-                            </TouchableOpacity>
-                        </Camera>}
+            <View style={styles.container}>
+                {focused &&
+                    <Camera
+                        style={cameraButtonStyle}
+                        type={CameraType.back}
+                        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+                        ref={cameraRef}>
+                        {/* Take Photo / Add Item Button */}
+                        <TouchableOpacity
+                            onPress={takingPhoto ? takePicture : handleNoCodeAddItem}
+                            style={takingPhoto ? styles.takePhotoButton : styles.addItemButton}>
+                            {takingPhoto ? <></> : <Icon name='add-circle' size={70} />}
+                        </TouchableOpacity>
+                    </Camera>}
 
 
-                    <BottomSheet
-                        ref={bottomSheetRef}
-                        index={-1}
-                        snapPoints={snapPoints}
-                        enablePanDownToClose={itemConfirmed || scanned}
-                        onAnimate={handleBottomSheetAnimated}
-                        onChange={handleBottomSheetChanged}
-                        animationConfigs={animationConfigs}
-                    >
+                <BottomSheet
+                    ref={bottomSheetRef}
+                    index={-1}
+                    snapPoints={snapPoints}
+                    enablePanDownToClose={itemConfirmed || scanned}
+                    onAnimate={handleBottomSheetAnimated}
+                    onChange={handleBottomSheetChanged}
+                    animationConfigs={animationConfigs}
+                >
+                    <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContainer}>
                         {itemConfirmed ? (RenderBottomSheetWhenItemConfirmed) :
                             scanned ? (RenderBottomSheetWhenScanned)
                                 : <><Button
-                                    onPress={() => bottomSheetRef.current.close()}
+                                    onPress={() => resetItem()}
                                     title="Cancel" /></>}
-                    </BottomSheet>
+                    </BottomSheetScrollView>
+                </BottomSheet>
 
-                </View>
-            </GestureHandlerRootView>
-        </>
+            </View>
+        </GestureHandlerRootView>
     );
 }
 

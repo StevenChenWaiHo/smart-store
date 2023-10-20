@@ -23,22 +23,25 @@ export const styles = StyleSheet.create({
     alignItems: 'flex-end',
     marginRight: '10%'
   },
-  datePicker: {
-    height: 120,
-    marginTop: -40,
-    marginLeft: -10,
+  datePickerIos: {
+    height: 100,
+    width: '100%',
+    marginTop: 0,
   },
   bottomSheetContainer: {
-    height: '100%',
     width: '100%',
-    marginLeft: '5%',                              
-    marginRight: '5%',
-    padding: '5%',
+    height: '100%',
   },
   bottomSheetBoldText: {
     fontWeight: 'bold',
     fontSize: 20,
-    width: '100%'
+  },
+  inputLabel: {
+    fontWeight: 'bold',
+    fontSize: 20,
+    width: '100%',
+    marginTop: 5,
+    marginBottom: 5,
   },
   bottomSheetText: {
     fontWeight: 'normal',
@@ -87,7 +90,10 @@ export const styles = StyleSheet.create({
     height: 200,
   },
   minimizedBottomSheetContainer: {
-    height: '80%',
+    height: '20%',
+    width: '100%',
+    flexDirection: 'row', 
+    margin: 10
   },
   bottomSheetImageContainer: {
     width: '100%',
@@ -101,14 +107,16 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 15
   }
   ,
   fullExpandedBottomSheetImageContainer: {
     width: '100%',
-    height: '45%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
     margin: '10%',
+    padding: '10%'
   },
   fullExpandedBottomSheetImage: {
     width: '100%',
@@ -116,10 +124,12 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 15
   },
   itemListImage: {
-    width: 50,
-    height: 50,
+    width: 100,
+    height: 100,
+    borderRadius: 15
   }
   ,
   accordionListContainer: {
@@ -128,5 +138,21 @@ export const styles = StyleSheet.create({
   ,
   listItemContent: {
     marginLeft: 10
+  },
+  inputSheetContainer: {
+    margin: 20,
+    flexDirection: 'column',
+    height: '100%'
+  },
+  input: {
+    width: "100%",
+    padding: 10,
+    backgroundColor: '#f2f2f2',
+    height: 50
+  },
+  buttonContainer: {
+    margin: 10
+  },
+  button: {
   }
 });

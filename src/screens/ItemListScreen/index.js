@@ -12,12 +12,21 @@ import { useIsFocused } from "@react-navigation/native";
 export default function ItemListScreen({ route }) {
   // const db = route.params.database;
   const db = SQLite.openDatabase('list.db');
-  const focus = useIsFocused()
+  var focus = useIsFocused();
+
+  const [firstLoad, setFirstLoad] = useState(true);
+
+  useEffect(() => {
+    if (firstLoad || focus) {
+      updateListFromDatabase()
+      setFirstLoad(false);
+    }
+  }, [firstLoad, focus])
 
   const [list, setList] = useState([])
-  const [refreshing, setRefreshing] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [, forceUpdate] = useReducer(x => x + 1, 0);
-  
+
   const updateList = (databaseList) => {
     setRefreshing(true)
     const itemToIndex = new Map();
@@ -78,11 +87,6 @@ export default function ItemListScreen({ route }) {
     db.transaction(tx => {
       tx.executeSql('SELECT * FROM list ORDER BY date', null)
     })
-  }
-
-
-  useEffect(() => {
-
     // db.transaction(tx => {
     //   tx.executeSql(`CREATE TABLE IF NOT EXISTS list (
     //         id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -94,10 +98,9 @@ export default function ItemListScreen({ route }) {
     if (focus) {
       updateListFromDatabase();
     }
-  }, [focus])
+  }
 
   const onRefresh = () => {
-    setRefreshing(true)
     updateListFromDatabase()
   }
 
@@ -116,57 +119,58 @@ export default function ItemListScreen({ route }) {
                 style={styles.itemListImage} />
               <ListItem.Content style={styles.listItemContent}>
                 <ListItem.Title>
-                  {item?.itemName}
+                  <Text style={styles.bottomSheetBoldText}>{item?.itemName}</Text>
                 </ListItem.Title>
                 <ListItem.Subtitle>
-                  {new Date(item?.dates?.[0]?.date).toDateString()}
+                  <Text>{new Date(item?.dates?.[0].date).toDateString()}</Text>
                   {/* Sum of quantity of all items */}
-                  Quantity: {item?.dates?.reduce((accumulator, currentValue) => accumulator + currentValue.quantity, 0)}
+                  <Text>Quantity : {item?.dates?.reduce((accumulator, currentValue) => accumulator + currentValue.quantity, 0)}</Text>
                 </ListItem.Subtitle>
               </ListItem.Content>
             </>
 
           }
           isExpanded={expandedItemId === i}
-          onPress={() => expandedItemId !== i ? setExpandedItemId(i) : setExpandedItemId(-1)} 
+          onPress={() => expandedItemId !== i ? setExpandedItemId(i) : setExpandedItemId(-1)}
         >
           <View >
-          {item.dates.map((date, j) => (
-            <ListItem.Swipeable 
-              key={j}
-              leftContent={(reset) => (
-                <Button
-                  title="Use 1"
-                  onPress={() => { useOneItem(i, j); reset()}}
-                  icon={{ name: 'info', color: 'white' }}
-                  buttonStyle={{ minHeight: '100%' }}
-                />
-              )}
-              rightContent={(reset) => (
-                <Button
-                  title="Delete"
-                  onPress={() => {deleteItem(i, j); reset()}}
-                  icon={{ name: 'delete', color: 'white' }}
-                  buttonStyle={{ minHeight: '100%', backgroundColor: 'red' }}
-                />
-              )}
-            >
-              <View style={styles.accordionListContainer}>
-                <Image
-                  source={{ uri: date.image }}
-                  style={styles.itemListImage} />
-                <ListItem.Content style={styles.listItemContent}>
-                  <ListItem.Subtitle>
-                    {new Date(date.date).toDateString()}
-                    {/* Sum of quantity of all items */}
-                    Quantity: {date.quantity}
-                  </ListItem.Subtitle>
-                </ListItem.Content>
-              </View>
+            {item.dates.map((date, j) => (
+              <ListItem.Swipeable
+                key={j}
+                leftContent={(reset) => (
+                  <Button
+                    title="Use 1"
+                    onPress={() => { useOneItem(i, j); reset() }}
+                    icon={{ name: 'info', color: 'white' }}
+                    buttonStyle={{ minHeight: '100%' }}
+                  />
+                )}
+                rightContent={(reset) => (
+                  <Button
+                    title="Delete"
+                    onPress={() => { deleteItem(i, j); reset() }}
+                    icon={{ name: 'delete', color: 'white' }}
+                    buttonStyle={{ minHeight: '100%', backgroundColor: 'red' }}
+                  />
+                )}
+              >
+                <View style={{ ...styles.accordionListContainer, flexDirection: 'row' }}>
+                  <Image
+                    source={{ uri: date.image }}
+                    style={styles.itemListImage} />
+                  <ListItem.Content style={styles.listItemContent}>
+                    <ListItem.Title>
+                      <Text style={styles.bottomSheetBoldText}>{new Date(date.date).toDateString()}</Text>
+                    </ListItem.Title>
+                    <ListItem.Subtitle>
+                      Quantity: {date.quantity}
+                    </ListItem.Subtitle>
+                  </ListItem.Content>
+                </View>
 
-            </ListItem.Swipeable>))}
+              </ListItem.Swipeable>))}
           </View>
-          
+
         </ListItem.Accordion>
         :
         // Only one Date
@@ -174,7 +178,7 @@ export default function ItemListScreen({ route }) {
           leftContent={(reset) => (
             <Button
               title="Use 1"
-              onPress={() => {useOneItem(i, 0); reset()}}
+              onPress={() => { useOneItem(i, 0); reset() }}
               icon={{ name: 'info', color: 'white' }}
               buttonStyle={{ minHeight: '100%' }}
             />
@@ -182,27 +186,29 @@ export default function ItemListScreen({ route }) {
           rightContent={(reset) => (
             <Button
               title="Delete"
-              onPress={() => {deleteItem(i, 0); reset()}}
+              onPress={() => { deleteItem(i, 0); reset() }}
               icon={{ name: 'delete', color: 'white' }}
               buttonStyle={{ minHeight: '100%', backgroundColor: 'red' }}
             />
           )}
         >
           <>
-              <Image
-                source={{ uri: item?.dates?.[0].image }}
-                style={styles.itemListImage} />
-              <ListItem.Content style={styles.listItemContent}>
-                <ListItem.Title>
-                  {item?.itemName}
-                </ListItem.Title>
-                <ListItem.Subtitle>
-                  {new Date(item?.dates?.[0].date).toDateString()}
-                  {/* Sum of quantity of all items */}
-                  Quantity: {item?.dates?.reduce((accumulator, currentValue) => accumulator + currentValue.quantity, 0)}
-                </ListItem.Subtitle>
-              </ListItem.Content>
-            </>
+            <Image
+              source={{ uri: item?.dates?.[0].image }}
+              style={styles.itemListImage} />
+            <ListItem.Content style={styles.listItemContent}>
+              <ListItem.Title>
+                <Text style={styles.bottomSheetBoldText}>{item?.itemName}</Text>
+              </ListItem.Title>
+              <ListItem.Subtitle>
+                <View>
+                  <Text>{new Date(item?.dates?.[0].date).toDateString()}</Text>
+                  <Text>Quantity : {item?.dates?.[0].quantity}</Text>
+                </View>
+
+              </ListItem.Subtitle>
+            </ListItem.Content>
+          </>
 
         </ListItem.Swipeable>
     );
@@ -237,7 +243,7 @@ export default function ItemListScreen({ route }) {
         leftContainerStyle={{}}
         linearGradientProps={{}}
         placement="center"
-        rightComponent={<Icon name='clear' color={'#FFF'} onPress={clearList}/>}
+        rightComponent={<Icon name='clear' color={'#FFF'} onPress={clearList} />}
         rightContainerStyle={{}}
         statusBarProps={{}}
       />
