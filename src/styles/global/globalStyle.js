@@ -26,7 +26,6 @@ export const styles = StyleSheet.create({
   datePickerIos: {
     height: 100,
     width: '100%',
-    marginTop: 0,
   },
   bottomSheetContainer: {
     width: '100%',
@@ -89,7 +88,13 @@ export const styles = StyleSheet.create({
     width: 200,
     height: 200,
   },
-  minimizedBottomSheetContainer: {
+  barcodeKnownBottomSheetContainer: {
+    height: '35%',
+    width: '100%',
+    flexDirection: 'row', 
+    margin: 10
+  },
+  barcodeUnknownBottomSheetContainer: {
     height: '20%',
     width: '100%',
     flexDirection: 'row', 

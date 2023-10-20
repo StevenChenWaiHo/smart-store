@@ -23,7 +23,7 @@ export default function AddItemScreen({ route }) {
     const [firstLoad, setFirstLoad] = useState(true);
 
     const [hasPermission, requestPermission] = Camera.useCameraPermissions();
-    const [scanned, setScanned] = useState(false);
+    const [itemStatus, setItemStatus] = useState({ editing: false, scanned: false }); // Combine two state to avoid duplicate triggers
     const [barcode, setBarcode] = useState(0);
     const [itemName, setItemName] = useState('');
     const [quantity, setQuantity] = useState(1);
@@ -31,7 +31,6 @@ export default function AddItemScreen({ route }) {
     const [dateString, setDateString] = useState('');
     const [image, setImage] = useState(defaultImage);
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [itemConfirmed, setItemConfirmed] = useState(false);
     const [takingPhoto, setTakingPhoto] = useState(false);
     const [barcodeKnown, setBarcodeKnown] = useState(false)
     const focused = useIsFocused();
@@ -45,15 +44,12 @@ export default function AddItemScreen({ route }) {
     }
 
     const resetItem = () => {
-        setScanned(false)
         setBarcodeKnown(false)
         setBarcode(0)
-        setItemConfirmed(false);
         setItemName('');
         setQuantity(1);
         setDate(new Date());
         setImage(defaultImage);
-        bottomSheetRef.current.forceClose();
     }
 
     const updatedScannedItem = (item) => {
@@ -61,6 +57,9 @@ export default function AddItemScreen({ route }) {
         setQuantity(item?.quantity);
         setImage(item?.image);
     }
+
+    // console.log('editing: ', editing)
+    // console.log('scanned: ', scanned)
 
     useEffect(() => {
         if (firstLoad) {
@@ -100,12 +99,15 @@ export default function AddItemScreen({ route }) {
         db.transaction(tx => {
             tx.executeSql('INSERT INTO list (itemName, date, quantity, image) values (?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image],
                 (txObj, resultList) => {
-                    resetItem();
                     alert(`Added Item - ${item.itemName}`)
+                    setItemStatus({ editing: false, scanned: false })
                 },
                 (txObj, error) => console.log(error))
         })
         console.log([item.barcode, item.itemName, item.quantity, item.image])
+        if (!itemStatus.scanned) {
+            return
+        }
         if (barcodeKnown) {
             db.transaction(tx => {
                 tx.executeSql('UPDATE barcodeMap SET itemName = (?), quantity = (?), image = (?) WHERE barcode = (?)', [item.itemName, item.quantity, item.image, item.barcode],
@@ -125,18 +127,18 @@ export default function AddItemScreen({ route }) {
         }
     }
 
-    const handleItemConfirm = () => {
-        bottomSheetRef.current.expand();
-    }
-
-    const handleNoCodeAddItem = () => {
-        bottomSheetRef.current.expand();
-    }
-
     // Bottom Sheet
     const bottomSheetRef = useRef(null);
 
-    const snapPoints = useMemo(() => itemConfirmed ? ['100%'] : scanned ? ['25%', '100%'] : ['100%'], [scanned, itemConfirmed]);
+    const handleItemConfirm = () => {
+        setItemStatus({ editing: true, scanned: true })
+    }
+
+    const handleNoCodeAddItem = () => {
+        setItemStatus({ editing: true, scanned: false })
+    }
+
+    const snapPoints = useMemo(() => itemStatus.editing ? ['100%'] : itemStatus.scanned ? (barcodeKnown ? ['40%%', '100%'] : ['25%%', '100%']) : ['100%'], [itemStatus.scanned, itemStatus.editing, barcodeKnown]);
     const animationConfigs = useBottomSheetSpringConfigs({
         damping: 30,
         overshootClamping: true,
@@ -145,6 +147,32 @@ export default function AddItemScreen({ route }) {
         stiffness: 500,
     });
 
+    useEffect(() => {
+        console.log('editing: ', itemStatus.editing)
+        console.log('scanned: ', itemStatus.scanned)
+        if (!itemStatus.scanned && !itemStatus.editing) {
+            console.log('bottom sheet should be close')
+            resetItem()
+            bottomSheetRef.current.close()
+            return
+        }
+        if (takingPhoto) {
+            bottomSheetRef.current.close()
+            return
+        }
+        if (itemStatus.editing) {
+            bottomSheetRef.current.expand()
+            console.log('bottom sheet should be fully expanded')
+            return
+        }
+        if (itemStatus.scanned) {
+            bottomSheetRef.current.snapToIndex(0)
+            console.log('bottom sheet should be half expanded')
+            return
+        }
+
+    }, [itemStatus])
+
     const handleBottomSheetChanged = (toPos) => {
         // Finish taking Photo
         if (takingPhoto && toPos === 0) {
@@ -152,29 +180,29 @@ export default function AddItemScreen({ route }) {
             console.log('Finish taking Photo')
             return
         }
-        // Item Confirmed when add button pressed
-        if (!itemConfirmed && !scanned && toPos === 0) {
-            setItemConfirmed(true)
-            console.log('Item Confirmed when add button pressed')
-            return
-        }
         // Item Confirmed when swipe up after scanned
-        if (!itemConfirmed && scanned && toPos === 1) {
-            setItemConfirmed(true)
+        if (!itemStatus.editing && itemStatus.scanned && toPos === 1) {
+            setItemStatus({ editing: true, scanned: true })
             console.log('Item Confirmed when swipe up after scanned')
             return
         }
+        // Item Confirmed when add button pressed
+        // if (!editing && !scanned && toPos === 0) {
+        //     setediting(true)
+        //     console.log('Item Confirmed when add button pressed')
+        //     return
+        // }
+
     }
 
     const handleBottomSheetAnimated = (fromPos, toPos) => {
-        Keyboard.dismiss()
         if (takingPhoto) {
             return
         }
         // Discard scanned item after bottom sheet is closed
-        if (!takingPhoto && toPos === -1) {
-            resetItem();
-            bottomSheetRef.current.forceClose();
+        if (!takingPhoto && !itemStatus.editing && itemStatus.scanned && toPos === -1) {
+            setItemStatus({ editing: false, scanned: false })
+            Keyboard.dismiss()
             console.log('Discard item after bottom sheet is closed')
             return
         }
@@ -187,28 +215,29 @@ export default function AddItemScreen({ route }) {
         setImage(picture.uri);
         bottomSheetRef.current.expand();
 
-        if (!itemConfirmed) {
+        if (!itemStatus.editing) {
             console.log('Item not confirmed when taking Photo')
             return
         }
     }
 
     const handleBarCodeScanned = (barcode) => {
-        setScanned(true);
+        if (itemStatus.editing) {
+            return;
+        }
         setBarcode(barcode);
         db.transaction(tx => {
             tx.executeSql('SELECT * FROM barcodeMap WHERE barcode = (?)', [barcode.data],
                 (txObj, resultList) => {
                     console.log(resultList.rows)
+                    setItemStatus({ editing: false, scanned: true })
                     if (resultList.rows.length === 1) {
                         setBarcodeKnown(true);
                         updatedScannedItem(resultList.rows._array[0])
                     }
-                    0
                 },
                 (txObj, error) => console.log(error))
         })
-        bottomSheetRef.current.snapToIndex(0)
     };
 
     useEffect(() => {
@@ -217,42 +246,13 @@ export default function AddItemScreen({ route }) {
         }
     }, [hasPermission])
 
-    useEffect(() => {
-        if (takingPhoto) {
-            bottomSheetRef.current.forceClose()
-        }
-    }, [takingPhoto])
-
     const handleChangePhotoButton = () => {
         setTakingPhoto(true);
         console.log('Taking Photo')
     }
 
-    const RenderBottomSheetWhenScanned = (
-        <View style={styles.minimizedBottomSheetContainer}>
-            <View style={{ ...styles.topCenteredContainer, flex: 2 }}>
-                <Image
-                    source={{ uri: image }}
-                    style={styles.bottomSheetImage} />
-            </View>
-            <View style={{ flexDirection: 'column', flex: 4 }}>
-                <View style={{ ...styles.topLeftContainer, flex: 2 }}>
-                    <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
-                    <Text style={styles.bottomSheetBoldText}>{itemName || 'New Barcode'}</Text>
-                    <Text style={styles.bottomSheetBoldText}>Quantity: {quantity || 'New Barcode'}</Text>
-                </View>
-                <View style={{ ...styles.bottomRightContainer, flex: 1 }}>
-                    <Button
-                        onPress={handleItemConfirm}
-                        style={styles.button}
-                        title="Confirm" />
-                </View>
-            </View>
-        </View>)
-
     const itemNameInput = useRef(null);
     const quantityInput = useRef(null);
-    const dateInput = useRef(null)
 
     // Date
     const toggleDatePicker = () => {
@@ -299,8 +299,6 @@ export default function AddItemScreen({ route }) {
             // DatePicker for ios
             return (
                 <DateTimePicker
-                    focusable={true}
-                    autoFocus={true}
                     mode='date'
                     display='spinner'
                     value={date}
@@ -309,7 +307,47 @@ export default function AddItemScreen({ route }) {
         }
     }
 
-    const RenderBottomSheetWhenItemConfirmed = (
+    const RenderBottomSheetWhenScanned =
+        barcodeKnown ? (
+            <View style={styles.barcodeKnownBottomSheetContainer}>
+                <View style={{ ...styles.topCenteredContainer, flex: 2 }}>
+                    <Image
+                        source={{ uri: image }}
+                        style={styles.bottomSheetImage} />
+                </View>
+                <View style={{ flexDirection: 'column', flex: 4 }}>
+                    <View style={{ ...styles.topLeftContainer, flex: 2 }}>
+                        <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
+                        <Text style={styles.bottomSheetBoldText}>{itemName}</Text>
+                        <Text style={styles.bottomSheetBoldText}>Quantity: {quantity || 'New Barcode'}</Text>
+                        <Text style={styles.inputLabel}>Date:</Text>
+                        <RenderDatePicker />
+                    </View>
+                    <View style={{ ...styles.bottomRightContainer, flex: 1 }}>
+                        <Button
+                            onPress={addItemToList}
+                            style={styles.button}
+                            title="Add to List" />
+                    </View>
+                </View>
+            </View>)
+            : (
+                <View style={styles.barcodeUnknownBottomSheetContainer}>
+                    <View style={{ flexDirection: 'column', flex: 4 }}>
+                        <View style={{ ...styles.topLeftContainer, flex: 2 }}>
+                            <Text style={styles.bottomSheetBoldText}>Code: {barcode.data}</Text>
+                            <Text style={styles.bottomSheetBoldText}>New Barcode</Text>
+                        </View>
+                        <View style={{ ...styles.bottomRightContainer, flex: 1 }}>
+                            <Button
+                                onPress={handleItemConfirm}
+                                style={styles.button}
+                                title="Add Details" />
+                        </View>
+                    </View>
+                </View>)
+
+    const RenderBottomSheetWhenEditing = (
         <View style={styles.inputSheetContainer}>
 
             <View style={{ ...styles.topCenteredContainer, flex: 2, flexDirection: 'row' }}>
@@ -328,7 +366,7 @@ export default function AddItemScreen({ route }) {
                     <TextInput
                         ref={itemNameInput}
                         value={itemName}
-                        autoFocus={true}
+                        autoFocus={!barcodeKnown}
                         placeholder="Enter Item Name Here"
                         style={styles.input}
                         clearButtonMode='while-editing'
@@ -357,7 +395,7 @@ export default function AddItemScreen({ route }) {
                 <View style={{ flexDirection: 'row' }}>
                     <View style={{ ...styles.buttonContainer, flex: 2 }}>
                         <Button
-                            onPress={() => resetItem()}
+                            onPress={() => setItemStatus({ editing: false, scanned: false })}
                             title="Cancel"
                             style={styles.button} />
                     </View>
@@ -385,7 +423,7 @@ export default function AddItemScreen({ route }) {
                     <Camera
                         style={cameraButtonStyle}
                         type={CameraType.back}
-                        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+                        onBarCodeScanned={(itemStatus.scanned || itemStatus.editing) ? undefined : handleBarCodeScanned}
                         ref={cameraRef}>
                         {/* Take Photo / Add Item Button */}
                         <TouchableOpacity
@@ -396,23 +434,23 @@ export default function AddItemScreen({ route }) {
                     </Camera>}
 
 
-                <BottomSheet
+                {!firstLoad && <BottomSheet
                     ref={bottomSheetRef}
                     index={-1}
                     snapPoints={snapPoints}
-                    enablePanDownToClose={itemConfirmed || scanned}
+                    enablePanDownToClose={!itemStatus.editing}
                     onAnimate={handleBottomSheetAnimated}
                     onChange={handleBottomSheetChanged}
                     animationConfigs={animationConfigs}
                 >
                     <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContainer}>
-                        {itemConfirmed ? (RenderBottomSheetWhenItemConfirmed) :
-                            scanned ? (RenderBottomSheetWhenScanned)
+                        {itemStatus.editing ? (RenderBottomSheetWhenEditing) :
+                            itemStatus.scanned ? (RenderBottomSheetWhenScanned)
                                 : <><Button
-                                    onPress={() => resetItem()}
+                                    onPress={() => setItemStatus({ editing: false, scanned: false })}
                                     title="Cancel" /></>}
                     </BottomSheetScrollView>
-                </BottomSheet>
+                </BottomSheet>}
 
             </View>
         </GestureHandlerRootView>

@@ -68,7 +68,7 @@ export default function ItemListScreen({ route }) {
     db.transaction(tx => {
       tx.executeSql('UPDATE list SET quantity = (?) WHERE id = (?)', [newQuantity, tempItem.id])
     })
-    forceUpdate()
+    forceUpdate(1)
   }
 
   const deleteItem = (i, j) => {
