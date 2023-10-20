@@ -175,7 +175,7 @@ export default function AddItemScreen({ route }) {
         if (!takingPhoto && toPos === -1) {
             resetItem();
             bottomSheetRef.current.forceClose();
-            console.log('Discard scanned item after bottom sheet is closed')
+            console.log('Discard item after bottom sheet is closed')
             return
         }
     }
@@ -353,7 +353,7 @@ export default function AddItemScreen({ route }) {
                     onChangeText={(val) => setQuantity(val)} />
             </View>
 
-            <View style={{ ...styles.topCenteredContainer, flex: 1 }}>
+            <View style={{ ...styles.topCenteredContainer, flex: 2 }}>
                 <View style={{ flexDirection: 'row' }}>
                     <View style={{ ...styles.buttonContainer, flex: 2 }}>
                         <Button
