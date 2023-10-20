@@ -16,9 +16,10 @@ import * as SQLite from 'expo-sqlite'
 
 export default function AddItemScreen({ route }) {
     // const db = route.params.database;
-  const db = SQLite.openDatabase('list.db');
+    const db = SQLite.openDatabase('list.db');
 
-    if (!db) { console.log(db);  return <></>} 
+    const [firstLoad, setFirstLoad] = useState(true);
+
     const [hasPermission, requestPermission] = Camera.useCameraPermissions();
     const [scanned, setScanned] = useState(false);
     const [barcode, setBarcode] = useState('');
@@ -45,15 +46,18 @@ export default function AddItemScreen({ route }) {
         //     tx.executeSql(`DROP TABLE IF EXISTS list`)
         // })
 
-        db.transaction(tx => {
-            tx.executeSql(`CREATE TABLE IF NOT EXISTS list (
+        if (firstLoad) {
+            db.transaction(tx => {
+                tx.executeSql(`CREATE TABLE IF NOT EXISTS list (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, 
                 itemName TEXT,
                 date INTEGER,
                 quantity INTEGER,
                 image BLOB)`)
-        })
-    })
+            })
+            setFirstLoad(false)
+        }
+    }, [firstLoad])
 
     const addItemToList = async (event) => {
         console.log(item)
