@@ -142,7 +142,7 @@ export default function AddItemScreen({ route }) {
     // Bottom Sheet
     const bottomSheetRef = useRef(null);
 
-    const handleItemConfirm = () => {
+    const handleItemEdit = () => {
         setItemStatus({ editing: true, scanned: true })
     }
 
@@ -248,6 +248,22 @@ export default function AddItemScreen({ route }) {
                     if (resultList.rows.length === 1) {
                         setBarcodeKnown(true);
                         updatedScannedItem(resultList.rows._array[0])
+                    } else {
+                        fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode.data}.json`)
+                            .then((response) => response.json())
+                            .then((json) => {
+                                // Product Found
+                                if (json.status === 1) {
+                                    setBarcodeKnown(true);
+                                    updatedScannedItem({
+                                        itemName: json?.product?.product_name || 'Not Found',
+                                        quantity: json?.product?.quantity || 1,
+                                        image: json?.product?.image_url || defaultImage,
+                                    })
+                                } else {
+                                    setBarcodeKnown(false);
+                                }
+                            }).catch((error) => { console.log(error); setBarcodeKnown(false); })
                     }
                 },
                 (txObj, error) => console.log(error))
@@ -337,11 +353,19 @@ export default function AddItemScreen({ route }) {
                         <Text style={styles.inputLabel}>Date:</Text>
                         <RenderDatePicker />
                     </View>
-                    <View style={{ ...styles.bottomRightContainer, flex: 1 }}>
-                        <Button
-                            onPress={addItemToList}
-                            style={styles.button}
-                            title="Add to List" />
+                    <View style={{ ...styles.bottomRightContainer, flex: 1, flexDirection: 'row' }}>
+                        <View style={{ ...styles.buttonContainer, flex: 2 }}>
+                            <Button
+                                onPress={handleItemEdit}
+                                style={styles.button}
+                                title="Edit Details" />
+                        </View>
+                        <View style={{ ...styles.buttonContainer, flex: 2 }}>
+                            <Button
+                                onPress={addItemToList}
+                                style={styles.button}
+                                title="Add to List" />
+                        </View>
                     </View>
                 </View>
             </View>)
@@ -354,7 +378,7 @@ export default function AddItemScreen({ route }) {
                         </View>
                         <View style={{ ...styles.bottomRightContainer, flex: 1 }}>
                             <Button
-                                onPress={handleItemConfirm}
+                                onPress={handleItemEdit}
                                 style={styles.button}
                                 title="Add Details" />
                         </View>
