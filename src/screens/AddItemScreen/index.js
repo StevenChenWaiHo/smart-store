@@ -13,7 +13,16 @@ import { useIsFocused } from '@react-navigation/native';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SQLite from 'expo-sqlite'
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
 
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
 
 export default function AddItemScreen({ route }) {
     // const db = route.params.database;
@@ -73,7 +82,8 @@ export default function AddItemScreen({ route }) {
                 itemName TEXT,
                 date INTEGER,
                 quantity INTEGER,
-                image BLOB)`)
+                image BLOB,
+                notificationId TEXT)`)
             })
             db.transaction(tx => {
                 tx.executeSql(`CREATE TABLE IF NOT EXISTS barcodeMap (
@@ -96,32 +106,32 @@ export default function AddItemScreen({ route }) {
             alert('Quantity cannot be empty or less than 0')
             return;
         }
+        const notificationId = await schedulePushNotification(item)
+        // console.log(notificationId)
         db.transaction(tx => {
-            tx.executeSql('INSERT INTO list (itemName, date, quantity, image) values (?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image],
+            tx.executeSql('INSERT INTO list (itemName, date, quantity, image, notificationId) values (?, ?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image, notificationId],
                 (txObj, resultList) => {
                     alert(`Added Item - ${item.itemName}`)
                     setItemStatus({ editing: false, scanned: false })
+                    resetItem();
+                    console.log(resultList.rows._array)
                 },
                 (txObj, error) => console.log(error))
         })
-        console.log([item.barcode, item.itemName, item.quantity, item.image])
+        // console.log([item.barcode, item.itemName, item.quantity, item.image])
         if (!itemStatus.scanned) {
             return
         }
         if (barcodeKnown) {
             db.transaction(tx => {
                 tx.executeSql('UPDATE barcodeMap SET itemName = (?), quantity = (?), image = (?) WHERE barcode = (?)', [item.itemName, item.quantity, item.image, item.barcode],
-                    (txObj, resultList) => {
-                        console.log(resultList.rows)
-                    },
+                    (txObj, resultList) => {},
                     (txObj, error) => console.log(error))
             })
         } else {
             db.transaction(tx => {
                 tx.executeSql('INSERT INTO barcodeMap (barcode, itemName, quantity, image) values (?, ?, ?, ?)', [item.barcode, item.itemName, item.quantity, item.image],
-                    (txObj, resultList) => {
-                        console.log(resultList.rows)
-                    },
+                    (txObj, resultList) => {},
                     (txObj, error) => console.log(error))
             })
         }
@@ -148,20 +158,21 @@ export default function AddItemScreen({ route }) {
     });
 
     useEffect(() => {
-        console.log('editing: ', itemStatus.editing)
-        console.log('scanned: ', itemStatus.scanned)
+        // console.log('editing: ', itemStatus.editing)
+        // console.log('scanned: ', itemStatus.scanned)
+        console.log('takingPhoto: ', takingPhoto)
+        if (takingPhoto) {
+            bottomSheetRef.current.close();
+            return
+        }
         if (!itemStatus.scanned && !itemStatus.editing) {
             console.log('bottom sheet should be close')
             resetItem()
-            bottomSheetRef.current.close()
-            return
-        }
-        if (takingPhoto) {
-            bottomSheetRef.current.close()
+            bottomSheetRef.current.close();
             return
         }
         if (itemStatus.editing) {
-            bottomSheetRef.current.expand()
+            bottomSheetRef.current.expand();
             console.log('bottom sheet should be fully expanded')
             return
         }
@@ -171,7 +182,7 @@ export default function AddItemScreen({ route }) {
             return
         }
 
-    }, [itemStatus])
+    }, [itemStatus, takingPhoto])
 
     const handleBottomSheetChanged = (toPos) => {
         // Finish taking Photo
@@ -366,7 +377,6 @@ export default function AddItemScreen({ route }) {
                     <TextInput
                         ref={itemNameInput}
                         value={itemName}
-                        autoFocus={!barcodeKnown}
                         placeholder="Enter Item Name Here"
                         style={styles.input}
                         clearButtonMode='while-editing'
@@ -411,6 +421,78 @@ export default function AddItemScreen({ route }) {
         </View>
     )
 
+    // Notification
+    const [expoPushToken, setExpoPushToken] = useState('');
+    const [notification, setNotification] = useState(false);
+    const notificationListener = useRef();
+    const responseListener = useRef();
+
+    useEffect(() => {
+        registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
+
+        notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+            setNotification(notification);
+        });
+
+        responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+            console.log(response);
+        });
+
+        return () => {
+            Notifications.removeNotificationSubscription(notificationListener.current);
+            Notifications.removeNotificationSubscription(responseListener.current);
+        };
+    }, []);
+
+    async function schedulePushNotification(item) {
+        const trigger = new Date(item?.date);
+        trigger.setHours(8)
+        trigger.setMinutes(0)
+        trigger.setSeconds(0)
+
+        return await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "Your Item is Expiring 📬",
+            body: `${item?.itemName} is expiring on ${new Date(item?.date).toDateString()}`,
+          },
+          trigger,
+        });
+      }
+
+    async function registerForPushNotificationsAsync() {
+        let token;
+
+        if (Platform.OS === 'android') {
+            await Notifications.setNotificationChannelAsync('default', {
+                name: 'default',
+                importance: Notifications.AndroidImportance.MAX,
+                vibrationPattern: [0, 250, 250, 250],
+                lightColor: '#FF231F7C',
+            });
+        }
+
+        if (Device.isDevice) {
+            const { status: existingStatus } = await Notifications.getPermissionsAsync();
+            let finalStatus = existingStatus;
+            if (existingStatus !== 'granted') {
+                const { status } = await Notifications.requestPermissionsAsync();
+                finalStatus = status;
+            }
+            if (finalStatus !== 'granted') {
+                alert('Failed to get push token for push notification!');
+                return;
+            }
+            // Learn more about projectId:
+            // https://docs.expo.dev/push-notifications/push-notifications-setup/#configure-projectid
+            token = (await Notifications.getExpoPushTokenAsync({ projectId: 'your-project-id' })).data;
+            console.log(token);
+        } else {
+            alert('Must use physical device for Push Notifications');
+        }
+
+        return token;
+    }
+
     const cameraButtonStyle = { ...styles.camera, alignItems: takingPhoto ? 'center' : 'flex-end' }
 
     return (
@@ -434,7 +516,7 @@ export default function AddItemScreen({ route }) {
                     </Camera>}
 
 
-                {!firstLoad && <BottomSheet
+                <BottomSheet
                     ref={bottomSheetRef}
                     index={-1}
                     snapPoints={snapPoints}
@@ -450,7 +532,7 @@ export default function AddItemScreen({ route }) {
                                     onPress={() => setItemStatus({ editing: false, scanned: false })}
                                     title="Cancel" /></>}
                     </BottomSheetScrollView>
-                </BottomSheet>}
+                </BottomSheet>
 
             </View>
         </GestureHandlerRootView>

@@ -8,6 +8,7 @@ import { useEffect, useReducer, useState } from "react";
 import { styles } from "../../styles/global/globalStyle";
 import * as SQLite from 'expo-sqlite'
 import { useIsFocused } from "@react-navigation/native";
+import { cancelScheduledNotificationAsync, dismissAllNotificationsAsync } from "expo-notifications";
 
 export default function ItemListScreen({ route }) {
   // const db = route.params.database;
@@ -37,6 +38,7 @@ export default function ItemListScreen({ route }) {
         date: entry.date,
         quantity: entry.quantity,
         image: entry.image,
+        notificationId: entry.notificationId
       }
       if (itemToIndex.has(entry.itemName)) {
         newList[itemToIndex.get(entry.itemName)].dates.push(item);
@@ -72,11 +74,13 @@ export default function ItemListScreen({ route }) {
   }
 
   const deleteItem = (i, j) => {
-    const tempItemId = list[i].dates[j].id
+    const tempItem = list[i].dates[j]
+    const tempItemId = tempItem.id
     list[i].dates.splice(j, 1)
     if (list[i].dates.length <= 0) {
       list.splice(i, 1)
     }
+    cancelScheduledNotificationAsync(tempItem.notificationId)
     db.transaction(tx => {
       tx.executeSql('DELETE FROM list WHERE id = (?)', [tempItemId])
     })
