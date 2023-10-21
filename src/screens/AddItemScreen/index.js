@@ -41,7 +41,7 @@ export default function AddItemScreen({ route }) {
     const [image, setImage] = useState(defaultImage);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [takingPhoto, setTakingPhoto] = useState(false);
-    const [barcodeKnown, setBarcodeKnown] = useState(false)
+    const [barcodeFound, setBarcodeFound] = useState({status: false, from: ''})
     const focused = useIsFocused();
 
     const item = {
@@ -53,7 +53,7 @@ export default function AddItemScreen({ route }) {
     }
 
     const resetItem = () => {
-        setBarcodeKnown(false)
+        setBarcodeFound({status: false, from: ''})
         setBarcode(0)
         setItemName('');
         setQuantity(1);
@@ -124,7 +124,7 @@ export default function AddItemScreen({ route }) {
         if (!itemStatus.scanned) {
             return
         }
-        if (barcodeKnown) {
+        if (barcode.status && barcodeFound.from === 'sql') {
             db.transaction(tx => {
                 tx.executeSql('UPDATE barcodeMap SET itemName = (?), quantity = (?), image = (?) WHERE barcode = (?)', [item.itemName, item.quantity, item.image, item.barcode],
                     (txObj, resultList) => { },
@@ -151,7 +151,7 @@ export default function AddItemScreen({ route }) {
         setItemStatus({ editing: true, scanned: false })
     }
 
-    const snapPoints = useMemo(() => itemStatus.editing ? ['100%'] : itemStatus.scanned ? (barcodeKnown ? ['40%%', '100%'] : ['25%%', '100%']) : ['100%'], [itemStatus.scanned, itemStatus.editing, barcodeKnown]);
+    const snapPoints = useMemo(() => itemStatus.editing ? ['100%'] : itemStatus.scanned ? (barcodeFound.status ? ['40%%', '100%'] : ['25%%', '100%']) : ['100%'], [itemStatus.scanned, itemStatus.editing, barcodeFound.status]);
     const animationConfigs = useBottomSheetSpringConfigs({
         damping: 30,
         overshootClamping: true,
@@ -246,7 +246,7 @@ export default function AddItemScreen({ route }) {
                     console.log(resultList.rows)
                     setItemStatus({ editing: false, scanned: true })
                     if (resultList.rows.length === 1) {
-                        setBarcodeKnown(true);
+                        setBarcodeFound({status: true, from: 'sql'});
                         updatedScannedItem(resultList.rows._array[0])
                     } else {
                         fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode.data}.json`)
@@ -254,16 +254,16 @@ export default function AddItemScreen({ route }) {
                             .then((json) => {
                                 // Product Found
                                 if (json.status === 1) {
-                                    setBarcodeKnown(true);
+                                    setBarcodeFound({status: true, from: 'api'});
                                     updatedScannedItem({
                                         itemName: json?.product?.product_name || 'Not Found',
                                         quantity: json?.product?.quantity || 1,
                                         image: json?.product?.image_url || defaultImage,
                                     })
                                 } else {
-                                    setBarcodeKnown(false);
+                                    setBarcodeFound({status: false, from: ''});
                                 }
-                            }).catch((error) => { console.log(error); setBarcodeKnown(false); })
+                            }).catch((error) => { console.log(error); setBarcodeFound({status: false, from: ''}); })
                     }
                 },
                 (txObj, error) => console.log(error))
@@ -338,7 +338,7 @@ export default function AddItemScreen({ route }) {
     }
 
     const RenderBottomSheetWhenScanned =
-        barcodeKnown ? (
+        barcodeFound.status ? (
             <View style={styles.barcodeKnownBottomSheetContainer}>
                 <View style={{ ...styles.topCenteredContainer, flex: 2 }}>
                     <Image
@@ -349,7 +349,7 @@ export default function AddItemScreen({ route }) {
                     <View style={{ ...styles.topLeftContainer, flex: 2 }}>
                         <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
                         <Text style={styles.bottomSheetBoldText}>{itemName}</Text>
-                        <Text style={styles.bottomSheetBoldText}>Quantity: {quantity || 'New Barcode'}</Text>
+                        <Text style={styles.bottomSheetBoldText}>Quantity: {quantity}</Text>
                         <Text style={styles.inputLabel}>Date:</Text>
                         <RenderDatePicker />
                     </View>
@@ -374,13 +374,13 @@ export default function AddItemScreen({ route }) {
                     <View style={{ flexDirection: 'column', flex: 4 }}>
                         <View style={{ ...styles.topLeftContainer, flex: 2 }}>
                             <Text style={styles.bottomSheetBoldText}>Code: {barcode.data}</Text>
-                            <Text style={styles.bottomSheetBoldText}>New Barcode</Text>
+                            <Text style={styles.bottomSheetBoldText}>{itemName || 'Not Found in Database'}</Text>
                         </View>
                         <View style={{ ...styles.bottomRightContainer, flex: 1 }}>
                             <Button
                                 onPress={handleItemEdit}
                                 style={styles.button}
-                                title="Add Details" />
+                                title="Add Item" />
                         </View>
                     </View>
                 </View>)
