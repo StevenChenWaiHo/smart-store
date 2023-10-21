@@ -12,4 +12,4 @@ https://github.com/StevenChenWaiHo/smart-store/assets/122108964/e3f1ac1e-f6e4-40
 
 
 # Special Thanks
-* <a href="https://world.openfoodfacts.org/">Open Food Facts<a> for providing barcode to product API
+* <a href="https://world.openfoodfacts.org/">Open Food Facts<a> for providing barcode-to-product API
