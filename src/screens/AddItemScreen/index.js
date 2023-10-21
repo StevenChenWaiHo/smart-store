@@ -57,7 +57,9 @@ export default function AddItemScreen({ route }) {
         setBarcode(0)
         setItemName('');
         setQuantity(1);
-        setDate(new Date());
+        const newDate = new Date();
+        setDate(newDate);
+        setDateString(newDate.toDateString());
         setImage(defaultImage);
     }
 
