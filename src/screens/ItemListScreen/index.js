@@ -126,9 +126,11 @@ export default function ItemListScreen({ route }) {
                   <Text style={styles.bottomSheetBoldText}>{item?.itemName}</Text>
                 </ListItem.Title>
                 <ListItem.Subtitle>
-                  <Text>{new Date(item?.dates?.[0].date).toDateString()}</Text>
-                  {/* Sum of quantity of all items */}
-                  <Text>Quantity : {item?.dates?.reduce((accumulator, currentValue) => accumulator + currentValue.quantity, 0)}</Text>
+                  <View>
+                    <Text>{new Date(item?.dates?.[0].date).toDateString()}</Text>
+                    {/* Sum of quantity of all items */}
+                    <Text>Quantity : {item?.dates?.reduce((accumulator, currentValue) => accumulator + currentValue.quantity, 0)}</Text>
+                  </View>
                 </ListItem.Subtitle>
               </ListItem.Content>
             </>
@@ -164,7 +166,7 @@ export default function ItemListScreen({ route }) {
                     style={styles.itemListImage} />
                   <ListItem.Content style={styles.listItemContent}>
                     <ListItem.Title>
-                      <Text style={styles.bottomSheetBoldText}>{new Date(date.date).toDateString()}</Text>
+                      <Text style={styles.bottomSheetText}>{new Date(date.date).toDateString()}</Text>
                     </ListItem.Title>
                     <ListItem.Subtitle>
                       Quantity: {date.quantity}

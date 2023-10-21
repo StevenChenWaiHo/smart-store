@@ -18,11 +18,11 @@ import * as Notifications from 'expo-notifications';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
     }),
-  });
+});
 
 export default function AddItemScreen({ route }) {
     // const db = route.params.database;
@@ -127,13 +127,13 @@ export default function AddItemScreen({ route }) {
         if (barcodeKnown) {
             db.transaction(tx => {
                 tx.executeSql('UPDATE barcodeMap SET itemName = (?), quantity = (?), image = (?) WHERE barcode = (?)', [item.itemName, item.quantity, item.image, item.barcode],
-                    (txObj, resultList) => {},
+                    (txObj, resultList) => { },
                     (txObj, error) => console.log(error))
             })
         } else {
             db.transaction(tx => {
                 tx.executeSql('INSERT INTO barcodeMap (barcode, itemName, quantity, image) values (?, ?, ?, ?)', [item.barcode, item.itemName, item.quantity, item.image],
-                    (txObj, resultList) => {},
+                    (txObj, resultList) => { },
                     (txObj, error) => console.log(error))
             })
         }
@@ -147,6 +147,7 @@ export default function AddItemScreen({ route }) {
     }
 
     const handleNoCodeAddItem = () => {
+        console.log('Add without code')
         setItemStatus({ editing: true, scanned: false })
     }
 
@@ -162,29 +163,29 @@ export default function AddItemScreen({ route }) {
     useEffect(() => {
         // console.log('editing: ', itemStatus.editing)
         // console.log('scanned: ', itemStatus.scanned)
-        console.log('takingPhoto: ', takingPhoto)
-        if (takingPhoto) {
-            bottomSheetRef.current.close();
-            return
+        if (!firstLoad) {
+            if (takingPhoto) {
+                bottomSheetRef.current.close();
+                return
+            }
+            if (!itemStatus.scanned && !itemStatus.editing) {
+                console.log('bottom sheet should be close')
+                resetItem()
+                bottomSheetRef.current.close();
+                return
+            }
+            if (itemStatus.editing) {
+                bottomSheetRef.current.expand();
+                console.log('bottom sheet should be fully expanded')
+                return
+            }
+            if (itemStatus.scanned) {
+                bottomSheetRef.current.snapToIndex(0)
+                console.log('bottom sheet should be half expanded')
+                return
+            }
         }
-        if (!itemStatus.scanned && !itemStatus.editing) {
-            console.log('bottom sheet should be close')
-            resetItem()
-            bottomSheetRef.current.close();
-            return
-        }
-        if (itemStatus.editing) {
-            bottomSheetRef.current.expand();
-            console.log('bottom sheet should be fully expanded')
-            return
-        }
-        if (itemStatus.scanned) {
-            bottomSheetRef.current.snapToIndex(0)
-            console.log('bottom sheet should be half expanded')
-            return
-        }
-
-    }, [itemStatus, takingPhoto])
+    }, [itemStatus, takingPhoto, firstLoad])
 
     const handleBottomSheetChanged = (toPos) => {
         // Finish taking Photo
@@ -453,13 +454,13 @@ export default function AddItemScreen({ route }) {
         trigger.setSeconds(0)
 
         return await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "Your Item is Expiring 📬",
-            body: `${item?.itemName} is expiring on ${new Date(item?.date).toDateString()}`,
-          },
-          trigger,
+            content: {
+                title: "Your Item is Expiring 📬",
+                body: `${item?.itemName} is expiring on ${new Date(item?.date).toDateString()}`,
+            },
+            trigger,
         });
-      }
+    }
 
     async function registerForPushNotificationsAsync() {
         let token;
@@ -477,11 +478,13 @@ export default function AddItemScreen({ route }) {
             const { status: existingStatus } = await Notifications.getPermissionsAsync();
             let finalStatus = existingStatus;
             if (existingStatus !== 'granted') {
-                const { status } = await Notifications.requestPermissionsAsync();
-                finalStatus = status;
+                const result = await Notifications.requestPermissionsAsync();
+                // console.log(result)
+                // console.log(result.status)
+                finalStatus = result.status;
             }
             if (finalStatus !== 'granted') {
-                alert('Failed to get push token for push notification!');
+                alert('Please allow notification. You can grant the app notification access in app settings');
                 return;
             }
             // Learn more about projectId:
