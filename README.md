@@ -7,5 +7,7 @@
 #Demo
 
 
-Uploading SmartStore_Screen_Recording.mp4…
+https://github.com/StevenChenWaiHo/smart-store/assets/122108964/e3f1ac1e-f6e4-4049-9c23-21b6dfdf8456
+
+
 
