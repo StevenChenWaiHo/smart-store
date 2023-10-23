@@ -5,6 +5,10 @@ This app is used to manage groceries and remind users when an item is expiring
 * Scan barcode to recognise a product
 * Set notifications to remind expiring items
 
+# Support
+* iOS
+* Android
+
 # Demo
 
 
