@@ -292,11 +292,11 @@ export default function AddItemScreen({ route }) {
     const onChangeDate = ({ type }, selectedDate) => {
         if (type == "set") {
             const currentDate = selectedDate;
-            setDate(selectedDate)
             if (Platform.OS === "android") {
                 toggleDatePicker();
                 setDateString(currentDate.toDateString())
             }
+            setDate(selectedDate)
         } else {
             toggleDatePicker()
         }
