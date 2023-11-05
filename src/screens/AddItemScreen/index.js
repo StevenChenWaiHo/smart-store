@@ -41,7 +41,7 @@ export default function AddItemScreen({ route }) {
     const [image, setImage] = useState(defaultImage);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [takingPhoto, setTakingPhoto] = useState(false);
-    const [barcodeFound, setBarcodeFound] = useState({status: false, from: ''})
+    const [barcodeFound, setBarcodeFound] = useState({ status: false, from: '' })
     const focused = useIsFocused();
 
     const item = {
@@ -49,11 +49,11 @@ export default function AddItemScreen({ route }) {
         image,
         date: Math.floor(date.getTime()), // ios result in decimal number
         itemName,
-        quantity,
+        quantity: Number(quantity) || 1,
     }
 
     const resetItem = () => {
-        setBarcodeFound({status: false, from: ''})
+        setBarcodeFound({ status: false, from: '' })
         setBarcode(0)
         setItemName('');
         setQuantity(1);
@@ -246,7 +246,7 @@ export default function AddItemScreen({ route }) {
                     console.log(resultList.rows)
                     setItemStatus({ editing: false, scanned: true })
                     if (resultList.rows.length === 1) {
-                        setBarcodeFound({status: true, from: 'sql'});
+                        setBarcodeFound({ status: true, from: 'sql' });
                         updatedScannedItem(resultList.rows._array[0])
                     } else {
                         fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode.data}.json`)
@@ -254,16 +254,16 @@ export default function AddItemScreen({ route }) {
                             .then((json) => {
                                 // Product Found
                                 if (json.status === 1) {
-                                    setBarcodeFound({status: true, from: 'api'});
+                                    setBarcodeFound({ status: true, from: 'api' });
                                     updatedScannedItem({
                                         itemName: json?.product?.product_name || 'Not Found',
-                                        quantity: json?.product?.quantity || 1,
+                                        quantity: Number(json?.product?.quantity) || 1,
                                         image: json?.product?.image_url || defaultImage,
                                     })
                                 } else {
-                                    setBarcodeFound({status: false, from: ''});
+                                    setBarcodeFound({ status: false, from: '' });
                                 }
-                            }).catch((error) => { console.log(error); setBarcodeFound({status: false, from: ''}); })
+                            }).catch((error) => { console.log(error); setBarcodeFound({ status: false, from: '' }); })
                     }
                 },
                 (txObj, error) => console.log(error))
@@ -348,8 +348,8 @@ export default function AddItemScreen({ route }) {
                 <View style={{ flexDirection: 'column', flex: 4 }}>
                     <View style={{ ...styles.topLeftContainer, flex: 2 }}>
                         <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
-                        <Text style={styles.bottomSheetBoldText}>{itemName}</Text>
-                        <Text style={styles.bottomSheetBoldText}>Quantity: {quantity}</Text>
+                        <Text style={styles.bottomSheetBoldText}>{item.itemName}</Text>
+                        <Text style={styles.bottomSheetBoldText}>Quantity: {item.quantity}</Text>
                         <Text style={styles.inputLabel}>Date:</Text>
                         <RenderDatePicker />
                     </View>
@@ -388,6 +388,7 @@ export default function AddItemScreen({ route }) {
     const RenderBottomSheetWhenEditing = (
         <View style={styles.inputSheetContainer}>
 
+            {/* Item Name Input */}
             <View style={{ ...styles.topCenteredContainer, flex: 2, flexDirection: 'row' }}>
                 <View style={{ ...styles.topCenteredContainer, flex: 1 }}>
                     <TouchableOpacity
@@ -403,7 +404,7 @@ export default function AddItemScreen({ route }) {
                     <Text style={styles.inputLabel} >Item Name:</Text>
                     <TextInput
                         ref={itemNameInput}
-                        value={itemName}
+                        value={item.itemName}
                         placeholder="Enter Item Name Here"
                         style={styles.input}
                         clearButtonMode='while-editing'
@@ -412,13 +413,15 @@ export default function AddItemScreen({ route }) {
                     />
                 </View>
             </View>
+            
+            {/* Quantity Input */}
             <View style={{ ...styles.topLeftContainer, flex: 2 }}>
                 <Text style={styles.inputLabel}>Date:</Text>
                 <RenderDatePicker />
                 <Text style={styles.inputLabel} >Quantity:</Text>
                 <TextInput
                     ref={quantityInput}
-                    value={quantity.toString()}
+                    value={item.quantity.toString()}
                     inputMode='numeric'
                     keyboardType='numeric'
                     placeholder="Enter Quantity Here"
@@ -522,27 +525,30 @@ export default function AddItemScreen({ route }) {
         return token;
     }
 
-    const cameraButtonStyle = { ...styles.camera, alignItems: takingPhoto ? 'center' : 'flex-end' }
+    const cameraComponent = useMemo(() => {
+        return (
+            <Camera
+                style={{ ...styles.camera, alignItems: takingPhoto ? 'center' : 'flex-end' }} // Camera Button Postion change when taking photo
+                type={CameraType.back}
+                onBarCodeScanned={(itemStatus.scanned || itemStatus.editing) ? undefined : handleBarCodeScanned}
+                ref={cameraRef}>
+                {/* Take Photo / Add Item Button */}
+                <TouchableOpacity
+                    onPress={takingPhoto ? takePicture : handleNoCodeAddItem}
+                    style={takingPhoto ? styles.takePhotoButton : styles.addItemButton}>
+                    {takingPhoto ? <></> : <Icon name='add-circle' size={70} />}
+                </TouchableOpacity>
+            </Camera>
+        )
+    }, [takingPhoto, itemStatus, cameraRef])
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
 
-            <StatusBar hidden={true} />
+            <StatusBar hidden={false} />
 
             <View style={styles.container}>
-                {focused &&
-                    <Camera
-                        style={cameraButtonStyle}
-                        type={CameraType.back}
-                        onBarCodeScanned={(itemStatus.scanned || itemStatus.editing) ? undefined : handleBarCodeScanned}
-                        ref={cameraRef}>
-                        {/* Take Photo / Add Item Button */}
-                        <TouchableOpacity
-                            onPress={takingPhoto ? takePicture : handleNoCodeAddItem}
-                            style={takingPhoto ? styles.takePhotoButton : styles.addItemButton}>
-                            {takingPhoto ? <></> : <Icon name='add-circle' size={70} />}
-                        </TouchableOpacity>
-                    </Camera>}
+                {focused && cameraComponent}
 
 
                 <BottomSheet
@@ -552,8 +558,7 @@ export default function AddItemScreen({ route }) {
                     enablePanDownToClose={!itemStatus.editing}
                     onAnimate={handleBottomSheetAnimated}
                     onChange={handleBottomSheetChanged}
-                    animationConfigs={animationConfigs}
-                >
+                    animationConfigs={animationConfigs}>
                     <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContainer}>
                         {itemStatus.editing ? (RenderBottomSheetWhenEditing) :
                             itemStatus.scanned ? (RenderBottomSheetWhenScanned)

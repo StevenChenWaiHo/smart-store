@@ -237,23 +237,6 @@ export default function ItemListScreen({ route }) {
     <>
       <StatusBar hidden={false} />
 
-      <Header
-        backgroundImageStyle={{}}
-        barStyle="default"
-        centerComponent={{
-          text: "MY LIST",
-          style: { color: "#fff" }
-        }}
-        centerContainerStyle={{}}
-        containerStyle={{ width: '100%' }}
-        leftContainerStyle={{}}
-        linearGradientProps={{}}
-        placement="center"
-        rightComponent={<Icon name='clear' color={'#FFF'} onPress={clearList} />}
-        rightContainerStyle={{}}
-        statusBarProps={{}}
-      />
-
       <FlatList
         data={list}
         keyExtractor={(item, index) => index.toString()}

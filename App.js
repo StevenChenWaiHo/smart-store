@@ -6,30 +6,28 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { Camera, CameraType } from 'expo-camera';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AddItemScreen from './src/screens/AddItemScreen';
 import ItemListScreen from './src/screens/ItemListScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import { Icon } from '@rneui/themed';
 import * as SQLite from 'expo-sqlite'
 
-const Tab = createMaterialTopTabNavigator();
+const Tab = createBottomTabNavigator();
 
 export default function App() {
 
   return (
     <NavigationContainer>
       <Tab.Navigator
-        tabBarPosition={'bottom'}
-        screenOptions={{
-          swipeEnabled: false
-        }}
         shifting={true}
       >
         <Tab.Screen
           name="Add Item"
           component={AddItemScreen}
           options={{
+            headerShown: false,
+            freezeOnBlur: false,
             tabBarLabel: 'Add Item',
             tabBarIcon: (({}) => (
               <Icon name='add-shopping-cart'/>
@@ -39,6 +37,14 @@ export default function App() {
           name="List"
           component={ItemListScreen}
           options={{
+            headerShown: true,
+            headerStyle: {
+              backgroundColor: 'skyblue',
+            },
+            headerTitleStyle: {
+              color: 'white',
+            },
+            freezeOnBlur: false,
             tabBarLabel: 'List',
             tabBarIcon: (({}) => (
               <Icon name='list'/>

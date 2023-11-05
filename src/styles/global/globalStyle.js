@@ -50,6 +50,14 @@ export const styles = StyleSheet.create({
     fontWeight: 'normal',
     fontSize: 10
   },
+  itemListHeader: {
+    width: '100%',
+    height: '6%'
+  },
+  headerText: {
+    color: '#FFFF',
+    fontSize: 15
+  },
   shadow: {
     shadowColor: "#000",
     shadowOffset: {

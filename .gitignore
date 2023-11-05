@@ -3,6 +3,15 @@
 # dependencies
 node_modules/
 
+# vscode
+.vscode/
+
+# vscode
+.metals/
+
+# yarn
+yarn.lock
+
 # Expo
 .expo/
 dist/
