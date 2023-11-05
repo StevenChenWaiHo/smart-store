@@ -110,17 +110,18 @@ export const styles = StyleSheet.create({
   },
   bottomSheetImageContainer: {
     width: '100%',
-    height: '45%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    border: '1px black solid',
+    backgroundColor: 'lightgrey',
+    borderRadius: 15
   },
   bottomSheetImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
-    justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 15
   }
   ,
   fullExpandedBottomSheetImageContainer: {
@@ -129,14 +130,8 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     margin: '10%',
-    padding: '10%'
-  },
-  fullExpandedBottomSheetImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
-    justifyContent: 'center',
-    alignItems: 'center',
+    border: '1px black solid',
+    backgroundColor: 'lightgrey',
     borderRadius: 15
   },
   itemListImage: {

@@ -341,9 +341,11 @@ export default function AddItemScreen({ route }) {
         barcodeFound.status ? (
             <View style={styles.barcodeKnownBottomSheetContainer}>
                 <View style={{ ...styles.topCenteredContainer, flex: 2 }}>
-                    <Image
-                        source={{ uri: image }}
-                        style={styles.bottomSheetImage} />
+                    <View style={styles.bottomSheetImageContainer}>
+                        <Image
+                            source={{ uri: image }}
+                            style={styles.bottomSheetImage} />
+                    </View>
                 </View>
                 <View style={{ flexDirection: 'column', flex: 4 }}>
                     <View style={{ ...styles.topLeftContainer, flex: 2 }}>
@@ -390,16 +392,16 @@ export default function AddItemScreen({ route }) {
 
             {/* Item Name Input */}
             <View style={{ ...styles.topCenteredContainer, flex: 2, flexDirection: 'row' }}>
-                <View style={{ ...styles.topCenteredContainer, flex: 1 }}>
+                <View style={{ ...styles.topCenteredContainer, flex: 3 }}>
                     <TouchableOpacity
                         style={styles.fullExpandedBottomSheetImageContainer}
                         onPress={handleChangePhotoButton}>
                         <Image
                             source={{ uri: image }}
-                            style={styles.fullExpandedBottomSheetImage} />
+                            style={styles.bottomSheetImage} />
                     </TouchableOpacity>
                 </View>
-                <View style={{ ...styles.topLeftContainer, flex: 2 }}>
+                <View style={{ ...styles.topLeftContainer, flex: 4 }}>
                     <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
                     <Text style={styles.inputLabel} >Item Name:</Text>
                     <TextInput
@@ -413,7 +415,7 @@ export default function AddItemScreen({ route }) {
                     />
                 </View>
             </View>
-            
+
             {/* Quantity Input */}
             <View style={{ ...styles.topLeftContainer, flex: 2 }}>
                 <Text style={styles.inputLabel}>Date:</Text>
