@@ -15,6 +15,7 @@ import * as SQLite from 'expo-sqlite'
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import Counter from 'react-native-counters';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -337,6 +338,12 @@ export default function AddItemScreen({ route }) {
         }
     }
 
+
+
+    const onChangeQuantity = (number, type) => {
+        setQuantity(number)
+    }
+
     const RenderBottomSheetWhenScanned =
         barcodeFound.status ? (
             <View style={styles.barcodeKnownBottomSheetContainer}>
@@ -351,7 +358,8 @@ export default function AddItemScreen({ route }) {
                     <View style={{ ...styles.topLeftContainer, flex: 2 }}>
                         <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
                         <Text style={styles.bottomSheetBoldText}>{item.itemName}</Text>
-                        <Text style={styles.bottomSheetBoldText}>Quantity: {item.quantity}</Text>
+                        <Text style={styles.bottomSheetBoldText}>Quantity:</Text>
+                        <Counter start={quantity} onChange={onChangeQuantity} />
                         <Text style={styles.inputLabel}>Date:</Text>
                         <RenderDatePicker />
                     </View>
@@ -421,16 +429,8 @@ export default function AddItemScreen({ route }) {
                 <Text style={styles.inputLabel}>Date:</Text>
                 <RenderDatePicker />
                 <Text style={styles.inputLabel} >Quantity:</Text>
-                <TextInput
-                    ref={quantityInput}
-                    value={item.quantity.toString()}
-                    inputMode='numeric'
-                    keyboardType='numeric'
-                    placeholder="Enter Quantity Here"
-                    clearButtonMode='while-editing'
-                    enterKeyHint='done'
-                    style={styles.input}
-                    onChangeText={(val) => setQuantity(val)} />
+                <Counter start={quantity} onChange={onChangeQuantity} />
+
             </View>
 
             <View style={{ ...styles.topCenteredContainer, flex: 2 }}>
