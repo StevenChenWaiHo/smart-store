@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "upgrades": {
+    "to_v2": [["ALTER TABLE list ADD COLUMN remarks text;"]]
+  },
+  "currentSchema": {
+    "list": {
+      "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+      "itemName": "TEXT",
+      "date": "INTEGER",
+      "quantity": "INTEGER",
+      "image": "BLOB",
+      "notificationId": "TEXT",
+      "remarks": "TEXT"
+    },
+    "barcodeMap": {
+      "barcode": "INTEGER PRIMARY KEY",
+      "itemName": "TEXT",
+      "quantity": "INTEGER",
+      "image": "BLOB"
+    }
+  }
+}

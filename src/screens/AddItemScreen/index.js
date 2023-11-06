@@ -26,7 +26,6 @@ Notifications.setNotificationHandler({
 });
 
 export default function AddItemScreen({ route }) {
-    // const db = route.params.database;
     const db = SQLite.openDatabase('list.db');
     const defaultImage = 'https://cdn4.iconfinder.com/data/icons/picture-sharing-sites/32/No_Image-1024.png';
 
@@ -39,6 +38,7 @@ export default function AddItemScreen({ route }) {
     const [quantity, setQuantity] = useState(1);
     const [date, setDate] = useState(new Date());
     const [dateString, setDateString] = useState('');
+    const [remarks, setRemarks] = useState('')
     const [image, setImage] = useState(defaultImage);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [takingPhoto, setTakingPhoto] = useState(false);
@@ -51,6 +51,7 @@ export default function AddItemScreen({ route }) {
         date: Math.floor(date.getTime()), // ios result in decimal number
         itemName,
         quantity: Number(quantity) || 1,
+        remarks,
     }
 
     const resetItem = () => {
@@ -62,6 +63,7 @@ export default function AddItemScreen({ route }) {
         setDate(newDate);
         setDateString(newDate.toDateString());
         setImage(defaultImage);
+        setRemarks('')
     }
 
     const updatedScannedItem = (item) => {
@@ -108,7 +110,7 @@ export default function AddItemScreen({ route }) {
         }
         const notificationId = await schedulePushNotification(item)
         db.transaction(tx => {
-            tx.executeSql('INSERT INTO list (itemName, date, quantity, image, notificationId) values (?, ?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image, notificationId],
+            tx.executeSql('INSERT INTO list (itemName, date, quantity, image, notificationId, remarks) values (?, ?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image, notificationId, item.remarks],
                 (txObj, resultList) => {
                     alert(`Added Item - ${item.itemName}`)
                     setItemStatus({ editing: false, scanned: false })
@@ -120,7 +122,6 @@ export default function AddItemScreen({ route }) {
         if (!itemStatus.scanned || !barcodeFound.status) {
             return
         }
-        console.log(barcode, barcodeFound)
         if (barcodeFound.from === 'sql') {
             db.transaction(tx => {
                 tx.executeSql('UPDATE barcodeMap SET itemName = (?), quantity = (?), image = (?) WHERE barcode = (?)', [item.itemName, item.quantity, item.image, item.barcode],
@@ -265,11 +266,6 @@ export default function AddItemScreen({ route }) {
         setTakingPhoto(true);
     }
 
-    // Inputs
-
-    const itemNameInput = useRef(null);
-    const quantityInput = useRef(null);
-
     // Date
     const toggleDatePicker = () => {
         setShowDatePicker(!showDatePicker)
@@ -289,34 +285,34 @@ export default function AddItemScreen({ route }) {
     }
 
     const RenderDatePicker = useCallback(() => {
-            return Platform.OS === 'android' ? (
-                <>
-                    <Pressable
-                        onPress={toggleDatePicker}>
-                        <TextInput
-                            placeholder="Enter Date here"
-                            style={styles.input}
-                            value={dateString}
-                            editable={false}
-                            onPressIn={toggleDatePicker} />
-                    </Pressable>
-                    {
-                        showDatePicker &&
-                        (<DateTimePicker
-                            mode='date'
-                            display={'calendar'}
-                            value={date}
-                            onChange={onChangeDate} />)
-                    }
-                </>) :
-                (Platform.OS === 'android' ? (
-                    <DateTimePicker
+        return Platform.OS === 'android' ? (
+            <>
+                <Pressable
+                    onPress={toggleDatePicker}>
+                    <TextInput
+                        placeholder="Enter Date here"
+                        style={styles.input}
+                        value={dateString}
+                        editable={false}
+                        onPressIn={toggleDatePicker} />
+                </Pressable>
+                {
+                    showDatePicker &&
+                    (<DateTimePicker
                         mode='date'
-                        display='spinner'
+                        display={'calendar'}
                         value={date}
-                        onChange={onChangeDate}
-                        style={styles.datePickerIos} />) : <></>)
-        }, [date, showDatePicker])
+                        onChange={onChangeDate} />)
+                }
+            </>) :
+            (Platform.OS === 'android' ? (
+                <DateTimePicker
+                    mode='date'
+                    display='spinner'
+                    value={date}
+                    onChange={onChangeDate}
+                    style={styles.datePickerIos} />) : <></>)
+    }, [date, showDatePicker])
 
 
 
@@ -393,7 +389,6 @@ export default function AddItemScreen({ route }) {
                     <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
                     <Text style={styles.inputLabel} >Item Name:</Text>
                     <TextInput
-                        ref={itemNameInput}
                         value={item.itemName}
                         placeholder="Enter Item Name Here"
                         style={styles.input}
@@ -404,16 +399,29 @@ export default function AddItemScreen({ route }) {
                 </View>
             </View>
 
-            {/* Quantity Input */}
+            {/* Inputs */}
             <View style={{ ...styles.topLeftContainer, flex: 2 }}>
                 <Text style={styles.inputLabel}>Date:</Text>
                 <RenderDatePicker />
+
                 <Text style={styles.inputLabel} >Quantity:</Text>
                 <Counter start={quantity} onChange={onChangeQuantity} />
 
+                <Text style={styles.inputLabel} >Remarks:</Text>
+                <TextInput
+                    editable
+                    multiline
+                    numberOfLines={5}
+                    maxLength={300}
+                    style={styles.mutilineInput}
+                    clearButtonMode='while-editing'
+                    enterKeyHint='done'
+                    onChangeText={(val) => setRemarks(val)}
+                />
             </View>
 
-            <View style={{ ...styles.topCenteredContainer, flex: 2 }}>
+            {/* Buttons */}
+            <View style={{ ...styles.topCenteredContainer, flex: 1 }}>
                 <View style={{ flexDirection: 'row' }}>
                     <View style={{ ...styles.buttonContainer, flex: 2 }}>
                         <Button

@@ -157,6 +157,12 @@ export const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2',
     height: 50
   },
+  mutilineInput: {
+    width: '100%',
+    padding: 10,
+    textAlignVertical: 'top',
+    backgroundColor: '#f2f2f2',
+  },
   buttonContainer: {
     margin: 10
   },
