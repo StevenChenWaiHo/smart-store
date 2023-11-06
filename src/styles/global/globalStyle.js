@@ -34,10 +34,11 @@ export const styles = StyleSheet.create({
   bottomSheetBoldText: {
     fontWeight: 'bold',
     fontSize: 20,
+    textDecorationLine: 'underline',
   },
   inputLabel: {
     fontWeight: 'bold',
-    fontSize: 20,
+    fontSize: 15,
     width: '100%',
     marginTop: 5,
     marginBottom: 5,
@@ -100,13 +101,14 @@ export const styles = StyleSheet.create({
     height: '35%',
     width: '100%',
     flexDirection: 'row', 
-    margin: 10
+    margin: 10,
+    paddingRight: 10,
   },
   barcodeUnknownBottomSheetContainer: {
     height: '20%',
     width: '100%',
     flexDirection: 'row', 
-    margin: 10
+    margin: 10,
   },
   bottomSheetImageContainer: {
     width: '100%',
@@ -122,8 +124,7 @@ export const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'contain',
     alignItems: 'center',
-  }
-  ,
+  },
   fullExpandedBottomSheetImageContainer: {
     width: '100%',
     height: '100%',
@@ -138,12 +139,10 @@ export const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 15
-  }
-  ,
+  },
   accordionListContainer: {
     paddingLeft: 20
-  }
-  ,
+  },
   listItemContent: {
     marginLeft: 10
   },

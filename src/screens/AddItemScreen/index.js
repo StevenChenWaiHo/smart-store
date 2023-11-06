@@ -358,8 +358,8 @@ export default function AddItemScreen({ route }) {
                 <View style={{ flexDirection: 'column', flex: 4 }}>
                     <View style={{ ...styles.topLeftContainer, flex: 2 }}>
                         <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
-                        <Text style={styles.bottomSheetBoldText}>{item.itemName}</Text>
-                        <Text style={styles.bottomSheetBoldText}>Quantity:</Text>
+                        <Text numberOfLines={1} style={styles.bottomSheetBoldText}>{item.itemName}</Text>
+                        <Text style={styles.inputLabel}>Quantity:</Text>
                         <Counter start={quantity} onChange={onChangeQuantity} />
                         <Text style={styles.inputLabel}>Date:</Text>
                         <RenderDatePicker />
