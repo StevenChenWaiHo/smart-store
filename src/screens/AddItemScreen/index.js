@@ -279,8 +279,9 @@ export default function AddItemScreen({ route }) {
 
     const handleChangePhotoButton = () => {
         setTakingPhoto(true);
-        console.log('Taking Photo')
     }
+
+    // Inputs
 
     const itemNameInput = useRef(null);
     const quantityInput = useRef(null);
@@ -508,18 +509,14 @@ export default function AddItemScreen({ route }) {
             let finalStatus = existingStatus;
             if (existingStatus !== 'granted') {
                 const result = await Notifications.requestPermissionsAsync();
-                // console.log(result)
-                // console.log(result.status)
                 finalStatus = result.status;
+
             }
             if (finalStatus !== 'granted') {
                 alert('Please allow notification. You can grant the app notification access in app settings');
                 return;
             }
-            // Learn more about projectId:
-            // https://docs.expo.dev/push-notifications/push-notifications-setup/#configure-projectid
-            token = (await Notifications.getExpoPushTokenAsync({ projectId: 'your-project-id' })).data;
-            console.log(token);
+            token = (await Notifications.getExpoPushTokenAsync()).data;
         } else {
             alert('Must use physical device for Push Notifications');
         }
@@ -527,30 +524,25 @@ export default function AddItemScreen({ route }) {
         return token;
     }
 
-    const cameraComponent = useMemo(() => {
-        return (
-            <Camera
-                style={{ ...styles.camera, alignItems: takingPhoto ? 'center' : 'flex-end' }} // Camera Button Postion change when taking photo
-                type={CameraType.back}
-                onBarCodeScanned={(itemStatus.scanned || itemStatus.editing) ? undefined : handleBarCodeScanned}
-                ref={cameraRef}>
-                {/* Take Photo / Add Item Button */}
-                <TouchableOpacity
-                    onPress={takingPhoto ? takePicture : handleNoCodeAddItem}
-                    style={takingPhoto ? styles.takePhotoButton : styles.addItemButton}>
-                    {takingPhoto ? <></> : <Icon name='add-circle' size={70} />}
-                </TouchableOpacity>
-            </Camera>
-        )
-    }, [takingPhoto, itemStatus, cameraRef])
-
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
 
             <StatusBar hidden={false} />
 
             <View style={styles.container}>
-                {focused && cameraComponent}
+                {focused &&
+                    <Camera
+                        style={{ ...styles.camera, alignItems: takingPhoto ? 'center' : 'flex-end' }} // Camera Button Postion change when taking photo
+                        type={CameraType.back}
+                        onBarCodeScanned={(itemStatus.scanned || itemStatus.editing) ? undefined : handleBarCodeScanned}
+                        ref={cameraRef}>
+                        {/* Take Photo / Add Item Button */}
+                        <TouchableOpacity
+                            onPress={takingPhoto ? takePicture : handleNoCodeAddItem}
+                            style={takingPhoto ? styles.takePhotoButton : styles.addItemButton}>
+                            {takingPhoto ? <></> : <Icon name='add-circle' size={70} />}
+                        </TouchableOpacity>
+                    </Camera>}
 
 
                 <BottomSheet
