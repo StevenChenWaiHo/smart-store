@@ -9,10 +9,10 @@ import { styles } from "../../styles/global/globalStyle";
 import * as SQLite from 'expo-sqlite'
 import { useIsFocused } from "@react-navigation/native";
 import { cancelScheduledNotificationAsync, dismissAllNotificationsAsync } from "expo-notifications";
+import openDatabase from "../../data/SQLite/openDatabase";
 
 export default function ItemListScreen({ route }) {
-  // const db = route.params.database;
-  const db = SQLite.openDatabase('list.db');
+  const db = openDatabase();
   var focus = useIsFocused();
 
   const [firstLoad, setFirstLoad] = useState(true);

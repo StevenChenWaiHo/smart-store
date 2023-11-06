@@ -16,6 +16,7 @@ import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Counter from 'react-native-counters';
+import openDatabase from '../../data/SQLite/openDatabase'
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -26,7 +27,7 @@ Notifications.setNotificationHandler({
 });
 
 export default function AddItemScreen({ route }) {
-    const db = SQLite.openDatabase('list.db');
+    const db = openDatabase();
     const defaultImage = 'https://cdn4.iconfinder.com/data/icons/picture-sharing-sites/32/No_Image-1024.png';
 
     const [firstLoad, setFirstLoad] = useState(true);
@@ -71,29 +72,35 @@ export default function AddItemScreen({ route }) {
         setQuantity(item?.quantity);
         setImage(item?.image);
     }
-
     useEffect(() => {
         if (firstLoad) {
             // db.transaction(tx => {
-            //     tx.executeSql(`DROP TABLE IF EXISTS list`)
+            //     console.log('hi')
+            //     tx.executeSql(`DROP TABLE list`,
+            //     (txObj, resultList) => updateList(resultList.rows._array),
+            //     (txObj, error) => console.log(error))
             // })
 
-            db.transaction(tx => {
-                tx.executeSql(`CREATE TABLE IF NOT EXISTS list (
-                id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                itemName TEXT,
-                date INTEGER,
-                quantity INTEGER,
-                image BLOB,
-                notificationId TEXT)`)
-            })
-            db.transaction(tx => {
-                tx.executeSql(`CREATE TABLE IF NOT EXISTS barcodeMap (
-                barcode INTEGER PRIMARY KEY, 
-                itemName TEXT,
-                quantity INTEGER,
-                image BLOB)`)
-            })
+            // db.transaction(tx => {
+            //     tx.executeSql(`DROP TABLE IF EXISTS barcodeMap`)
+            // })
+
+            // db.transaction(tx => {
+            //     tx.executeSql(`CREATE TABLE IF NOT EXISTS list (
+            //     id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            //     itemName TEXT,
+            //     date INTEGER,
+            //     quantity INTEGER,
+            //     image BLOB,
+            //     notificationId TEXT)`)
+            // })
+            // db.transaction(tx => {
+            //     tx.executeSql(`CREATE TABLE IF NOT EXISTS barcodeMap (
+            //     barcode INTEGER PRIMARY KEY, 
+            //     itemName TEXT,
+            //     quantity INTEGER,
+            //     image BLOB)`)
+            // })
             setFirstLoad(false)
         }
     }, [firstLoad])
@@ -110,7 +117,7 @@ export default function AddItemScreen({ route }) {
         }
         const notificationId = await schedulePushNotification(item)
         db.transaction(tx => {
-            tx.executeSql('INSERT INTO list (itemName, date, quantity, image, notificationId, remarks) values (?, ?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image, notificationId, item.remarks],
+            tx.executeSql('INSERT INTO list (itemName, date, quantity, image, notificationId) values (?, ?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image, notificationId],
                 (txObj, resultList) => {
                     alert(`Added Item - ${item.itemName}`)
                     setItemStatus({ editing: false, scanned: false })
