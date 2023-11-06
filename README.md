@@ -1,6 +1,10 @@
 # SmartStore
 ## Background
 This app is used to manage groceries and remind users when an item is expiring
+
+# Download 
+https://play.google.com/apps/internaltest/4700697298439303741
+
 # Features
 * Scan barcode to recognise a product
 * Set notifications to remind expiring items
