@@ -1,15 +1,18 @@
-import { Text, Image, ActivityIndicator, FlatList, RefreshControl, View } from "react-native";
+import { Text, Image, ActivityIndicator, FlatList, RefreshControl, View, TouchableOpacity } from "react-native";
 import { Header, ListItem, Icon, Button } from '@rneui/themed';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useState, useRef } from "react";
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import { styles } from "../../styles/global/globalStyle";
 import * as SQLite from 'expo-sqlite'
 import { useIsFocused } from "@react-navigation/native";
 import { cancelScheduledNotificationAsync, dismissAllNotificationsAsync } from "expo-notifications";
 import openDatabase from "../../data/SQLite/openDatabase";
+import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import EditItemForm from '../../components/EditItemForm';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function ItemListScreen({ route }) {
   const db = openDatabase();
@@ -27,6 +30,8 @@ export default function ItemListScreen({ route }) {
   const [list, setList] = useState([])
   const [refreshing, setRefreshing] = useState(false);
   const [, forceUpdate] = useReducer(x => x + 1, 0);
+  const [itemInEdit, setItemInEdit] = useState({})
+
 
   const updateList = (databaseList) => {
     setRefreshing(true)
@@ -63,6 +68,32 @@ export default function ItemListScreen({ route }) {
     })
   }
 
+  const sqlDataToState = (item) => {
+    console.log(item)
+    return {
+      itemName: item?.itemName,
+      quantity: item?.quantity,
+      image: item?.image,
+      barcode: item?.barcode,
+      date: item?.date,
+      remarks: item?.remarks,
+    }
+  }
+
+  // const editItem = (i, j) => {
+  //   const tempItem = list[i].dates[j]
+  //   db.transaction(tx => {
+  //     tx.executeSql('SELECT * FROM list WHERE id = (?)', [tempItem.id],
+  //       (txObj, resultList) => {
+  //         bottomSheetRef.current.expand()
+  //         console.log(resultList)
+  //         setItemInEdit(sqlDataToState(resultList.rows._array[0]))
+  //       },
+  //       (txObj, error) => console.log(error))
+  //   })
+  // }
+
+  
   const useOneItem = (i, j) => {
     const tempItem = list[i].dates[j]
     const newQuantity = Math.max(tempItem.quantity - 1, 0)
@@ -233,22 +264,46 @@ export default function ItemListScreen({ route }) {
     );
   };
 
+  const bottomSheetRef = useRef(null);
+
+  const handleChangePhotoButton = () => {
+
+  }
+
   return (
     <>
-      <StatusBar hidden={false} />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <StatusBar hidden={false} />
 
-      <FlatList
-        data={list}
-        keyExtractor={(item, index) => index.toString()}
-        includeseparatorComponent={ItemSeparatorView}
-        enableEmptySections={true}
-        renderItem={ItemView}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-          />}
-      />
+        <FlatList
+          data={list}
+          keyExtractor={(item, index) => index.toString()}
+          includeseparatorComponent={ItemSeparatorView}
+          enableEmptySections={true}
+          renderItem={ItemView}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+            />}
+        />
+
+        {/* <BottomSheet
+          ref={bottomSheetRef}
+          enablePanDownToClose
+          index={-1}
+          snapPoints={['100%']}>
+          <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContainer}>
+            <EditItemForm
+              item={itemInEdit}
+              handleCancel={() => bottomSheetRef.current.close()}
+              rightButtonText='Save' />
+          </BottomSheetScrollView>
+        </BottomSheet> */}
+
+      </GestureHandlerRootView>
+
+
     </>
 
   );

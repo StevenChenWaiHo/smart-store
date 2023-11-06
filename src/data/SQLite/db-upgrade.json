@@ -1,7 +1,8 @@
 {
-  "version": 2,
+  "version": 3,
   "upgrades": {
-    "to_v2": "ALTER TABLE list ADD COLUMN remarks text"
+    "to_v2": "ALTER TABLE list ADD COLUMN remarks text",
+    "to_v3": "ALTER TABLE list ADD COLUMN barcode text"
   },
   "baseSchema": {
     "list": {
@@ -22,6 +23,7 @@
   "currentSchema": {
     "list": {
       "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+      "barcode": "TEXT",
       "itemName": "TEXT",
       "date": "INTEGER",
       "quantity": "INTEGER",

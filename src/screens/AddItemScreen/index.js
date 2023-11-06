@@ -1,6 +1,6 @@
 
 import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet, Text, View, Button, TextInput, Pressable, TouchableOpacity, Image, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { Platform, StyleSheet, Text, View, Button, TextInput, Pressable, TouchableOpacity, Image, Keyboard } from 'react-native';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -117,7 +117,7 @@ export default function AddItemScreen({ route }) {
         }
         const notificationId = await schedulePushNotification(item)
         db.transaction(tx => {
-            tx.executeSql('INSERT INTO list (itemName, date, quantity, image, notificationId) values (?, ?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image, notificationId],
+            tx.executeSql('INSERT INTO list (itemName, date, quantity, image, notificationId, barcode, remarks) values (?, ?, ?, ?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image, notificationId, item.barcode, item.remarks],
                 (txObj, resultList) => {
                     alert(`Added Item - ${item.itemName}`)
                     setItemStatus({ editing: false, scanned: false })
@@ -144,76 +144,7 @@ export default function AddItemScreen({ route }) {
         }
     }
 
-    // Bottom Sheet
-    const bottomSheetRef = useRef(null);
 
-    const handleItemEdit = () => {
-        setItemStatus({ editing: true, scanned: true })
-    }
-
-    const handleNoCodeAddItem = () => {
-        setItemStatus({ editing: true, scanned: false })
-    }
-
-    const snapPoints = useMemo(() => itemStatus.editing ? ['100%'] : itemStatus.scanned ? (barcodeFound.status ? ['40%%', '100%'] : ['25%%', '100%']) : ['100%'], [itemStatus.scanned, itemStatus.editing, barcodeFound.status]);
-    const animationConfigs = useBottomSheetSpringConfigs({
-        damping: 30,
-        overshootClamping: true,
-        restDisplacementThreshold: 0.1,
-        restSpeedThreshold: 0.1,
-        stiffness: 500,
-    });
-
-    useEffect(() => {
-        if (!firstLoad) {
-            if (takingPhoto) {
-                bottomSheetRef.current.close();
-                return
-            }
-            // Bottom sheet should be close
-            if (!itemStatus.scanned && !itemStatus.editing) {
-                resetItem()
-                bottomSheetRef.current.close();
-                return
-            }
-            // Bottom sheet should be fully expanded
-            if (itemStatus.editing) {
-                bottomSheetRef.current.expand();
-                return
-            }
-            // Bottom sheet should be half expanded
-            if (itemStatus.scanned) {
-                bottomSheetRef.current.snapToIndex(0)
-                return
-            }
-        }
-    }, [itemStatus, takingPhoto, firstLoad])
-
-    const handleBottomSheetChanged = (toPos) => {
-        // Finish taking Photo
-        if (takingPhoto && toPos === 0) {
-            setTakingPhoto(false);
-            return
-        }
-        // Item Confirmed when swipe up after scanned
-        if (!itemStatus.editing && itemStatus.scanned && toPos === 1) {
-            setItemStatus({ editing: true, scanned: true })
-            return
-        }
-
-    }
-
-    const handleBottomSheetAnimated = (fromPos, toPos) => {
-        if (takingPhoto) {
-            return
-        }
-        // Discard scanned item after bottom sheet is closed
-        if (!takingPhoto && !itemStatus.editing && itemStatus.scanned && toPos === -1) {
-            setItemStatus({ editing: false, scanned: false })
-            Keyboard.dismiss()
-            return
-        }
-    }
     // Camera
     const cameraRef = useRef(null);
 
@@ -326,6 +257,78 @@ export default function AddItemScreen({ route }) {
     const onChangeQuantity = (number, type) => {
         setQuantity(number)
     }
+
+    // Bottom Sheet
+    const bottomSheetRef = useRef(null);
+
+    const handleItemEdit = () => {
+        setItemStatus({ editing: true, scanned: true })
+    }
+
+    const handleNoCodeAddItem = () => {
+        setItemStatus({ editing: true, scanned: false })
+    }
+
+    const snapPoints = useMemo(() => itemStatus.editing ? ['100%'] : itemStatus.scanned ? (barcodeFound.status ? ['40%%', '100%'] : ['25%%', '100%']) : ['100%'], [itemStatus.scanned, itemStatus.editing, barcodeFound.status]);
+    const animationConfigs = useBottomSheetSpringConfigs({
+        damping: 30,
+        overshootClamping: true,
+        restDisplacementThreshold: 0.1,
+        restSpeedThreshold: 0.1,
+        stiffness: 500,
+    });
+
+    useEffect(() => {
+        if (!firstLoad) {
+            if (takingPhoto) {
+                bottomSheetRef.current.close();
+                return
+            }
+            // Bottom sheet should be close
+            if (!itemStatus.scanned && !itemStatus.editing) {
+                resetItem()
+                bottomSheetRef.current.close();
+                return
+            }
+            // Bottom sheet should be fully expanded
+            if (itemStatus.editing) {
+                bottomSheetRef.current.expand();
+                return
+            }
+            // Bottom sheet should be half expanded
+            if (itemStatus.scanned) {
+                bottomSheetRef.current.snapToIndex(0)
+                return
+            }
+        }
+    }, [itemStatus, takingPhoto, firstLoad])
+
+    const handleBottomSheetChanged = (toPos) => {
+        // Finish taking Photo
+        if (takingPhoto && toPos === 0) {
+            setTakingPhoto(false);
+            return
+        }
+        // Item Confirmed when swipe up after scanned
+        if (!itemStatus.editing && itemStatus.scanned && toPos === 1) {
+            setItemStatus({ editing: true, scanned: true })
+            return
+        }
+
+    }
+
+    const handleBottomSheetAnimated = (fromPos, toPos) => {
+        if (takingPhoto) {
+            return
+        }
+        // Discard scanned item after bottom sheet is closed
+        if (!takingPhoto && !itemStatus.editing && itemStatus.scanned && toPos === -1) {
+            setItemStatus({ editing: false, scanned: false })
+            Keyboard.dismiss()
+            return
+        }
+    }
+
 
     const RenderBottomSheetWhenScanned =
         barcodeFound.status ? (

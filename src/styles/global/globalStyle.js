@@ -4,7 +4,6 @@ import { Platform } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'lightgrey',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -164,8 +163,12 @@ export const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2',
   },
   buttonContainer: {
-    margin: 10
+    margin: 10,
+    width: '100%',
+    height: '100%'
   },
   button: {
+    width: '100%',
+    height: '100%'
   }
 });
