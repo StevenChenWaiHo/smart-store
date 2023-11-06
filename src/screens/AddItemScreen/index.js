@@ -70,9 +70,6 @@ export default function AddItemScreen({ route }) {
         setImage(item?.image);
     }
 
-    // console.log('editing: ', editing)
-    // console.log('scanned: ', scanned)
-
     useEffect(() => {
         if (firstLoad) {
             // db.transaction(tx => {
@@ -110,22 +107,21 @@ export default function AddItemScreen({ route }) {
             return;
         }
         const notificationId = await schedulePushNotification(item)
-        // console.log(notificationId)
         db.transaction(tx => {
             tx.executeSql('INSERT INTO list (itemName, date, quantity, image, notificationId) values (?, ?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image, notificationId],
                 (txObj, resultList) => {
                     alert(`Added Item - ${item.itemName}`)
                     setItemStatus({ editing: false, scanned: false })
                     resetItem();
-                    console.log(resultList.rows._array)
+                    console.log('Add to List', resultList.rows._array)
                 },
                 (txObj, error) => console.log(error))
         })
-        // console.log([item.barcode, item.itemName, item.quantity, item.image])
-        if (!itemStatus.scanned) {
+        if (!itemStatus.scanned || !barcodeFound.status) {
             return
         }
-        if (barcode.status && barcodeFound.from === 'sql') {
+        console.log(barcode, barcodeFound)
+        if (barcodeFound.from === 'sql') {
             db.transaction(tx => {
                 tx.executeSql('UPDATE barcodeMap SET itemName = (?), quantity = (?), image = (?) WHERE barcode = (?)', [item.itemName, item.quantity, item.image, item.barcode],
                     (txObj, resultList) => { },
@@ -148,7 +144,6 @@ export default function AddItemScreen({ route }) {
     }
 
     const handleNoCodeAddItem = () => {
-        console.log('Add without code')
         setItemStatus({ editing: true, scanned: false })
     }
 
@@ -162,27 +157,25 @@ export default function AddItemScreen({ route }) {
     });
 
     useEffect(() => {
-        // console.log('editing: ', itemStatus.editing)
-        // console.log('scanned: ', itemStatus.scanned)
         if (!firstLoad) {
             if (takingPhoto) {
                 bottomSheetRef.current.close();
                 return
             }
+            // Bottom sheet should be close
             if (!itemStatus.scanned && !itemStatus.editing) {
-                console.log('bottom sheet should be close')
                 resetItem()
                 bottomSheetRef.current.close();
                 return
             }
+            // Bottom sheet should be fully expanded
             if (itemStatus.editing) {
                 bottomSheetRef.current.expand();
-                console.log('bottom sheet should be fully expanded')
                 return
             }
+            // Bottom sheet should be half expanded
             if (itemStatus.scanned) {
                 bottomSheetRef.current.snapToIndex(0)
-                console.log('bottom sheet should be half expanded')
                 return
             }
         }
@@ -192,21 +185,13 @@ export default function AddItemScreen({ route }) {
         // Finish taking Photo
         if (takingPhoto && toPos === 0) {
             setTakingPhoto(false);
-            console.log('Finish taking Photo')
             return
         }
         // Item Confirmed when swipe up after scanned
         if (!itemStatus.editing && itemStatus.scanned && toPos === 1) {
             setItemStatus({ editing: true, scanned: true })
-            console.log('Item Confirmed when swipe up after scanned')
             return
         }
-        // Item Confirmed when add button pressed
-        // if (!editing && !scanned && toPos === 0) {
-        //     setediting(true)
-        //     console.log('Item Confirmed when add button pressed')
-        //     return
-        // }
 
     }
 
@@ -218,7 +203,6 @@ export default function AddItemScreen({ route }) {
         if (!takingPhoto && !itemStatus.editing && itemStatus.scanned && toPos === -1) {
             setItemStatus({ editing: false, scanned: false })
             Keyboard.dismiss()
-            console.log('Discard item after bottom sheet is closed')
             return
         }
     }
@@ -231,6 +215,7 @@ export default function AddItemScreen({ route }) {
         bottomSheetRef.current.expand();
 
         if (!itemStatus.editing) {
+            // ERROR SHOULD NOT HAPPEN
             console.log('Item not confirmed when taking Photo')
             return
         }
@@ -244,7 +229,6 @@ export default function AddItemScreen({ route }) {
         db.transaction(tx => {
             tx.executeSql('SELECT * FROM barcodeMap WHERE barcode = (?)', [barcode.data],
                 (txObj, resultList) => {
-                    console.log(resultList.rows)
                     setItemStatus({ editing: false, scanned: true })
                     if (resultList.rows.length === 1) {
                         setBarcodeFound({ status: true, from: 'sql' });
@@ -304,10 +288,8 @@ export default function AddItemScreen({ route }) {
         }
     }
 
-    const RenderDatePicker = () => {
-        if (Platform.OS === 'android') {
-            // DatePicker for android
-            return (
+    const RenderDatePicker = useCallback(() => {
+            return Platform.OS === 'android' ? (
                 <>
                     <Pressable
                         onPress={toggleDatePicker}>
@@ -326,18 +308,15 @@ export default function AddItemScreen({ route }) {
                             value={date}
                             onChange={onChangeDate} />)
                     }
-                </>);
-        } else if (Platform.OS === 'ios') {
-            // DatePicker for ios
-            return (
-                <DateTimePicker
-                    mode='date'
-                    display='spinner'
-                    value={date}
-                    onChange={onChangeDate}
-                    style={styles.datePickerIos} />)
-        }
-    }
+                </>) :
+                (Platform.OS === 'android' ? (
+                    <DateTimePicker
+                        mode='date'
+                        display='spinner'
+                        value={date}
+                        onChange={onChangeDate}
+                        style={styles.datePickerIos} />) : <></>)
+        }, [date, showDatePicker])
 
 
 
