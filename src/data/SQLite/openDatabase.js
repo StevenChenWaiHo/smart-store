@@ -51,12 +51,12 @@ export default function openDatabase() {
   //     (txObj, error) => console.log(error))
   // })
 
-  // db.transaction(tx => {
-  //   tx.executeSql(`CREATE TABLE IF NOT EXISTS version (
-  //   versionNumber INTEGER)`, [],
-  //     (txObj, results) => { },
-  //     (txObj, error) => console.log(error))
-  // })
+  db.transaction(tx => {
+    tx.executeSql(`CREATE TABLE IF NOT EXISTS version (
+    versionNumber INTEGER)`, [],
+      (txObj, results) => { },
+      (txObj, error) => console.log(error))
+  })
 
   // Check if any version is present
   db.transaction(tx => {

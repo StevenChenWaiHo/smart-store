@@ -124,7 +124,7 @@ export default function AddItemScreen({ route }) {
                     resetItem();
                     console.log('Add to List', resultList.rows._array)
                 },
-                (txObj, error) => console.log(error))
+                (txObj, error) => alert(error))
         })
         if (!itemStatus.scanned || !barcodeFound.status) {
             return
