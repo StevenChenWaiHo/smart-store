@@ -13,6 +13,7 @@ import openDatabase from "../../data/SQLite/openDatabase";
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import EditItemForm from '../../components/EditItemForm';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import updateItem from "../../data/SQLite/item/update/updateItem";
 
 export default function ItemListScreen({ route }) {
   const db = openDatabase();
@@ -69,8 +70,8 @@ export default function ItemListScreen({ route }) {
   }
 
   const sqlDataToState = (item) => {
-    console.log(item)
     return {
+      id: item?.id,
       itemName: item?.itemName,
       quantity: item?.quantity,
       image: item?.image,
@@ -80,18 +81,28 @@ export default function ItemListScreen({ route }) {
     }
   }
 
-  // const editItem = (i, j) => {
-  //   const tempItem = list[i].dates[j]
-  //   db.transaction(tx => {
-  //     tx.executeSql('SELECT * FROM list WHERE id = (?)', [tempItem.id],
-  //       (txObj, resultList) => {
-  //         bottomSheetRef.current.expand()
-  //         console.log(resultList)
-  //         setItemInEdit(sqlDataToState(resultList.rows._array[0]))
-  //       },
-  //       (txObj, error) => console.log(error))
-  //   })
-  // }
+  const handleItemListLeftButtonPress = (i, j) => {
+    editItem(i, j);
+  }
+
+  const editItem = (i, j) => {
+    const tempItem = list[i].dates[j]
+    db.transaction(tx => {
+      tx.executeSql('SELECT * FROM list WHERE id = (?)', [tempItem.id],
+        (txObj, resultList) => {
+          bottomSheetRef.current.expand()
+          console.log(resultList.rows._array[0])
+          setItemInEdit(sqlDataToState({...resultList.rows._array[0]}))
+        },
+        (txObj, error) => console.log(error))
+    })
+  }
+  
+  const handleSaveItem = () => {
+    const {id: _, ...data} = itemInEdit
+    console.log({id: itemInEdit.id, data: data})
+    updateItem({db, id: itemInEdit.id, data: data})
+  }
 
   
   const useOneItem = (i, j) => {
@@ -116,23 +127,6 @@ export default function ItemListScreen({ route }) {
       tx.executeSql('DELETE FROM list WHERE id = (?)', [tempItemId])
     })
     forceUpdate(1)
-  }
-
-  const clearList = () => {
-    db.transaction(tx => {
-      tx.executeSql('SELECT * FROM list ORDER BY date', null)
-    })
-    // db.transaction(tx => {
-    //   tx.executeSql(`CREATE TABLE IF NOT EXISTS list (
-    //         id INTEGER PRIMARY KEY AUTOINCREMENT, 
-    //         itemName TEXT,
-    //         date INTEGER,
-    //         quantity INTEGER,
-    //         image BLOB)`)
-    // })
-    if (focus) {
-      updateListFromDatabase();
-    }
   }
 
   const onRefresh = () => {
@@ -176,9 +170,9 @@ export default function ItemListScreen({ route }) {
                 key={j}
                 leftContent={(reset) => (
                   <Button
-                    title="Use 1"
-                    onPress={() => { useOneItem(i, j); reset() }}
-                    icon={{ name: 'info', color: 'white' }}
+                    title="Edit"
+                    onPress={() => { handleItemListLeftButtonPress(i, j); reset() }}
+                    icon={{ name: 'edit', color: 'white' }}
                     buttonStyle={{ minHeight: '100%' }}
                   />
                 )}
@@ -214,9 +208,9 @@ export default function ItemListScreen({ route }) {
         <ListItem.Swipeable
           leftContent={(reset) => (
             <Button
-              title="Use 1"
-              onPress={() => { useOneItem(i, 0); reset() }}
-              icon={{ name: 'info', color: 'white' }}
+              title="Edit"
+              onPress={() => { handleItemListLeftButtonPress(i, 0); reset() }}
+              icon={{ name: 'edit', color: 'white' }}
               buttonStyle={{ minHeight: '100%' }}
             />
           )}
@@ -266,10 +260,6 @@ export default function ItemListScreen({ route }) {
 
   const bottomSheetRef = useRef(null);
 
-  const handleChangePhotoButton = () => {
-
-  }
-
   return (
     <>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -288,7 +278,7 @@ export default function ItemListScreen({ route }) {
             />}
         />
 
-        {/* <BottomSheet
+        <BottomSheet
           ref={bottomSheetRef}
           enablePanDownToClose
           index={-1}
@@ -296,10 +286,12 @@ export default function ItemListScreen({ route }) {
           <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContainer}>
             <EditItemForm
               item={itemInEdit}
+              setItemInEdit={setItemInEdit}
               handleCancel={() => bottomSheetRef.current.close()}
-              rightButtonText='Save' />
+              rightButtonText='Save'
+              handleSubmit={handleSaveItem}/>
           </BottomSheetScrollView>
-        </BottomSheet> */}
+        </BottomSheet>
 
       </GestureHandlerRootView>
 

@@ -6,21 +6,20 @@ import { useEffect, useState } from "react"
 
 export default EditItemForm = ({
     item = {},
+    setItemInEdit,
     handleSubmit,
     handleCancel,
     handleChangePhotoButton,
     rightButtonText,
 }) => {
 
-    const [quantity, setQuantity] = useState(item?.quantity)
-
     const onChangeQuantity = (number, type) => {
-        setQuantity(number)
+        setItemInEdit((prev) => ({...prev, quantity: number}))
     }
 
-    useEffect(() => {
-        setQuantity(item.quantity)
-    })
+    const RenderCounter = () => {
+        return <Counter start={item?.quantity} onChange={onChangeQuantity} max={100} />
+    }
 
     return (
         <View style={styles.inputSheetContainer}>
@@ -44,7 +43,6 @@ export default EditItemForm = ({
                         style={styles.input}
                         clearButtonMode='while-editing'
                         enterKeyHint='done'
-                        onChangeText={(val) => setItemName(val)}
                     />
                 </View>
             </View>
@@ -55,7 +53,7 @@ export default EditItemForm = ({
                 {/* <RenderDatePicker /> */}
 
                 <Text style={styles.inputLabel} >Quantity:</Text>
-                <Counter start={quantity} onChange={onChangeQuantity} max={100} />
+                <RenderCounter/>
 
                 <Text style={styles.inputLabel} >Remarks:</Text>
                 <TextInput
