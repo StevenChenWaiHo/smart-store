@@ -24,13 +24,13 @@ export default function updateDatabase({ debug }) {
         debugLog({ debug, message: 'INIT ALL TABLES' })
         db.transaction(tx => {
             // Create the tables with current schema
-            schemaToSQL(dbUpgrade.baseSchema).forEach((table) => {
+            schemaToSQL(dbUpgrade.currentSchema).forEach((table) => {
                 tx.executeSql(table, null,
                     (txObj, result) => { debugLog({ debug, message: `${table}: ${JSON.stringify(result)}` }) },
                     (txObj, error) => { debugLog({ debug, message: error }); return false })
             })
             // Add version number to version table
-            tx.executeSql("INSERT INTO version (versionNumber) values (?)", [1],
+            tx.executeSql("INSERT INTO version (versionNumber) values (?)", [dbUpgrade.version],
                 (txObj, result) => { debugLog({ debug, message: `Add newest version number: ${JSON.stringify(result)}` }); return true },
                 (txObj, error) => { debugLog({ debug, message: error }); return false })
         })
@@ -108,7 +108,7 @@ export default function updateDatabase({ debug }) {
         })
     }
 
-    deleteAllTables()
+    // deleteAllTables()
 
     db.transaction(tx => {
         tx.executeSql(`CREATE TABLE IF NOT EXISTS version (versionNumber INTEGER)`, [],
