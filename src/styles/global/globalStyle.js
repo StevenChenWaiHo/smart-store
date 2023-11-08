@@ -150,11 +150,13 @@ export const styles = StyleSheet.create({
     flexDirection: 'column',
     height: '100%'
   },
+  inputContainer: {
+    width: '100%',
+  },
   input: {
-    width: "100%",
+    width: '100%',
     padding: 10,
     backgroundColor: '#f2f2f2',
-    height: 50
   },
   mutilineInput: {
     width: '100%',
@@ -166,6 +168,7 @@ export const styles = StyleSheet.create({
     marginLeft: 10,
     marginRight: 10,
     width: '100%',
+    height: 50,
   },
   button: {
     width: '100%',

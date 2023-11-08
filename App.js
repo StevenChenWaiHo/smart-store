@@ -12,12 +12,22 @@ import ItemListScreen from './src/screens/ItemListScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import { Icon } from '@rneui/themed';
 import * as SQLite from 'expo-sqlite'
+import updateDatabase from './src/data/SQLite/updateDatabase';
 
 const Tab = createBottomTabNavigator();
 
 export default function App() {
 
-  return (
+  const [firstLoad, setFirstLoad] = useState(true);
+
+  useEffect(() => {
+    if (firstLoad) {
+      updateDatabase()
+      setFirstLoad(false)
+    }
+  }, [firstLoad])
+
+  return !firstLoad && (
     <NavigationContainer>
       <Tab.Navigator
         shifting={true}
@@ -29,10 +39,10 @@ export default function App() {
             headerShown: false,
             freezeOnBlur: false,
             tabBarLabel: 'Add Item',
-            tabBarIcon: (({}) => (
-              <Icon name='add-shopping-cart'/>
+            tabBarIcon: (({ }) => (
+              <Icon name='add-shopping-cart' />
             ))
-          }}/>
+          }} />
         <Tab.Screen
           name="List"
           component={ItemListScreen}
@@ -46,10 +56,10 @@ export default function App() {
             },
             freezeOnBlur: false,
             tabBarLabel: 'List',
-            tabBarIcon: (({}) => (
-              <Icon name='list'/>
+            tabBarIcon: (({ }) => (
+              <Icon name='list' />
             ))
-          }}/>
+          }} />
       </Tab.Navigator>
     </NavigationContainer>
 

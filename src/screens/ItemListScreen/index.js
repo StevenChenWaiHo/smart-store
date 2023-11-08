@@ -14,6 +14,7 @@ import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import EditItemForm from '../../components/EditItemForm';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import updateItem from "../../data/SQLite/item/update/updateItem";
+import dateNumberToString from "../../data/utils/date/dateNumberToString";
 
 export default function ItemListScreen({ route }) {
   const db = openDatabase();
@@ -72,12 +73,12 @@ export default function ItemListScreen({ route }) {
   const sqlDataToState = (item) => {
     return {
       id: item?.id,
-      itemName: item?.itemName,
-      quantity: item?.quantity,
-      image: item?.image,
-      barcode: item?.barcode,
-      date: item?.date,
-      remarks: item?.remarks,
+      itemName: item?.itemName || '',
+      quantity: item?.quantity || 1,
+      image: item?.image || '',
+      barcode: item?.barcode || '',
+      date: item?.date || new Date(),
+      remarks: item?.remarks || '',
     }
   }
 
@@ -99,9 +100,10 @@ export default function ItemListScreen({ route }) {
   }
   
   const handleSaveItem = () => {
-    const {id: _, ...data} = itemInEdit
-    console.log({id: itemInEdit.id, data: data})
-    updateItem({db, id: itemInEdit.id, data: data})
+    const { id: id, ...data } = itemInEdit
+    updateItem({ db, id: id, data: data })
+    bottomSheetRef.current.close()
+    updateListFromDatabase()
   }
 
   
@@ -112,7 +114,7 @@ export default function ItemListScreen({ route }) {
     db.transaction(tx => {
       tx.executeSql('UPDATE list SET quantity = (?) WHERE id = (?)', [newQuantity, tempItem.id])
     })
-    forceUpdate(1)
+    updateListFromDatabase()
   }
 
   const deleteItem = (i, j) => {
@@ -191,7 +193,7 @@ export default function ItemListScreen({ route }) {
                     style={styles.itemListImage} />
                   <ListItem.Content style={styles.listItemContent}>
                     <ListItem.Title>
-                      <Text style={styles.bottomSheetText}>{new Date(date.date).toDateString()}</Text>
+                      <Text style={styles.bottomSheetText}>{dateNumberToString(date.date)}</Text>
                     </ListItem.Title>
                     <ListItem.Subtitle>
                       Quantity: {date.quantity}
@@ -233,7 +235,7 @@ export default function ItemListScreen({ route }) {
               </ListItem.Title>
               <ListItem.Subtitle>
                 <View>
-                  <Text>{new Date(item?.dates?.[0].date).toDateString()}</Text>
+                  <Text>{dateNumberToString(item?.dates?.[0].date)}</Text>
                   <Text>Quantity : {item?.dates?.[0].quantity}</Text>
                 </View>
 

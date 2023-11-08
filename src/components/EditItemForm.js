@@ -1,8 +1,12 @@
-import { View, Image, TextInput, Button, Text } from "react-native"
+import { View, Image, TextInput, Button, Text, Pressable } from "react-native"
+import DateTimePicker from '@react-native-community/datetimepicker';
 import Counter from "react-native-counters"
 import { TouchableOpacity } from "react-native"
 import { styles } from "../styles/global/globalStyle"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
+import dateNumberToString from "../data/utils/date/dateNumberToString"
+
+
 
 export default EditItemForm = ({
     item = {},
@@ -13,18 +17,66 @@ export default EditItemForm = ({
     rightButtonText,
 }) => {
 
+    const [showAndroidDatePicker, setShowDatePicker] = useState(false);
+
+
+    const onChangeItemName = (text) => {
+        setItemInEdit((prev) => ({ ...prev, itemName: text }))
+    }
+
     const onChangeQuantity = (number, type) => {
-        setItemInEdit((prev) => ({...prev, quantity: number}))
+        setItemInEdit((prev) => ({ ...prev, quantity: number }))
+    }
+
+    const onChangeRemark = (text) => {
+        setItemInEdit((prev) => ({ ...prev, remarks: text }))
     }
 
     const RenderCounter = () => {
         return <Counter start={item?.quantity} onChange={onChangeQuantity} max={100} />
     }
 
+    const toggleDatePicker = () => {
+        setShowDatePicker(!showAndroidDatePicker)
+    }
+
+    const onChangeDate = ({ type }, selectedDate) => {
+        if (type == "set") {
+            const currentDate = selectedDate;
+            if (Platform.OS === "android") {
+                toggleDatePicker();
+            }
+            setItemInEdit((prev) => ({ ...prev, date: Math.floor(currentDate.getTime()) }))
+        } else {
+            toggleDatePicker()
+        }
+    }
+
+    const RenderDatePicker = useCallback(() => {
+        return Platform.OS === 'android' ? (
+            <>
+                <Pressable style={styles.inputContainer}
+                    onPress={toggleDatePicker}>
+                    <TextInput
+                        placeholder="Enter Date here"
+                        style={styles.input}
+                        value={dateNumberToString(item?.date)}
+                        editable={false}/>
+                </Pressable>
+            </>) :
+            (Platform.OS === 'ios' ? (
+                <DateTimePicker
+                    mode='date'
+                    display='spinner'
+                    value={new Date(item?.date)}
+                    onChange={onChangeDate}
+                    style={styles.datePickerIos} />) : <></>)
+    }, [item?.date])
+
     return (
         <View style={styles.inputSheetContainer}>
             {/* Item Name Input */}
-            <View style={{ ...styles.topCenteredContainer, flex: 2, flexDirection: 'row' }}>
+            <View style={{ ...styles.topCenteredContainer, flex: 1, flexDirection: 'row' }}>
                 <View style={{ ...styles.topCenteredContainer, flex: 3 }}>
                     <TouchableOpacity
                         style={styles.fullExpandedBottomSheetImageContainer}
@@ -43,6 +95,7 @@ export default EditItemForm = ({
                         style={styles.input}
                         clearButtonMode='while-editing'
                         enterKeyHint='done'
+                        onChangeText={onChangeItemName}
                     />
                 </View>
             </View>
@@ -50,10 +103,16 @@ export default EditItemForm = ({
             {/* Inputs */}
             <View style={{ ...styles.topLeftContainer, flex: 2 }}>
                 <Text style={styles.inputLabel}>Date:</Text>
-                {/* <RenderDatePicker /> */}
+                <RenderDatePicker />
+                {(Platform.OS === 'android' && showAndroidDatePicker) &&
+                    <DateTimePicker
+                        mode='date'
+                        display='calendar'
+                        value={new Date(item?.date)}
+                        onChange={onChangeDate} />}
 
                 <Text style={styles.inputLabel} >Quantity:</Text>
-                <RenderCounter/>
+                <RenderCounter />
 
                 <Text style={styles.inputLabel} >Remarks:</Text>
                 <TextInput
@@ -65,6 +124,7 @@ export default EditItemForm = ({
                     style={styles.mutilineInput}
                     clearButtonMode='while-editing'
                     enterKeyHint='done'
+                    onChangeText={onChangeRemark}
                 />
             </View>
 

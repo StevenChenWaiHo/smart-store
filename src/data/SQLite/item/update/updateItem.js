@@ -1,7 +1,7 @@
 const dataToSQLFields = (data) => {
     return Object.keys(data).map((column) => {
         return `${column} = (?)`
-    })
+    }).join(', ')
 }
 
 const dataToSQLValues = (data) => {
@@ -11,10 +11,11 @@ const dataToSQLValues = (data) => {
 }
 
 export default function updateItem({ db, id, data }) {
-    console.log(data)
+    console.log('Update List Item')
+    console.log(JSON.stringify(data))
     db.transaction(tx => {
         tx.executeSql(`UPDATE list SET ${dataToSQLFields(data)} WHERE id = (?)`, [...dataToSQLValues(data), id],
-        (txObj, resultList) => {console.log('Update Item: ', resultList)},
+        (txObj, resultList) => {},
         (txObj, error) => console.log(error))
     })
   }

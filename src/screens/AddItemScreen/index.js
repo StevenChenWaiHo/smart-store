@@ -30,8 +30,6 @@ export default function AddItemScreen({ route }) {
     const db = openDatabase();
     const defaultImage = 'https://cdn4.iconfinder.com/data/icons/picture-sharing-sites/32/No_Image-1024.png';
 
-    const [firstLoad, setFirstLoad] = useState(true);
-
     const [hasPermission, requestPermission] = Camera.useCameraPermissions();
     const [itemStatus, setItemStatus] = useState({ editing: false, scanned: false }); // Combine two state to avoid duplicate triggers
     const [barcode, setBarcode] = useState(0);
@@ -72,38 +70,6 @@ export default function AddItemScreen({ route }) {
         setQuantity(item?.quantity);
         setImage(item?.image);
     }
-    useEffect(() => {
-        if (firstLoad) {
-            // db.transaction(tx => {
-            //     console.log('hi')
-            //     tx.executeSql(`DROP TABLE list`,
-            //     (txObj, resultList) => updateList(resultList.rows._array),
-            //     (txObj, error) => console.log(error))
-            // })
-
-            // db.transaction(tx => {
-            //     tx.executeSql(`DROP TABLE IF EXISTS barcodeMap`)
-            // })
-
-            // db.transaction(tx => {
-            //     tx.executeSql(`CREATE TABLE IF NOT EXISTS list (
-            //     id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            //     itemName TEXT,
-            //     date INTEGER,
-            //     quantity INTEGER,
-            //     image BLOB,
-            //     notificationId TEXT)`)
-            // })
-            // db.transaction(tx => {
-            //     tx.executeSql(`CREATE TABLE IF NOT EXISTS barcodeMap (
-            //     barcode INTEGER PRIMARY KEY, 
-            //     itemName TEXT,
-            //     quantity INTEGER,
-            //     image BLOB)`)
-            // })
-            setFirstLoad(false)
-        }
-    }, [firstLoad])
 
     const addItemToList = async (event) => {
         if (item.itemName === '') {
@@ -161,6 +127,7 @@ export default function AddItemScreen({ route }) {
     }
 
     const handleBarCodeScanned = (barcode) => {
+        console.log('hi')
         if (itemStatus.editing) {
             return;
         }
@@ -279,29 +246,27 @@ export default function AddItemScreen({ route }) {
     });
 
     useEffect(() => {
-        if (!firstLoad) {
-            if (takingPhoto) {
-                bottomSheetRef.current.close();
-                return
-            }
-            // Bottom sheet should be close
-            if (!itemStatus.scanned && !itemStatus.editing) {
-                resetItem()
-                bottomSheetRef.current.close();
-                return
-            }
-            // Bottom sheet should be fully expanded
-            if (itemStatus.editing) {
-                bottomSheetRef.current.expand();
-                return
-            }
-            // Bottom sheet should be half expanded
-            if (itemStatus.scanned) {
-                bottomSheetRef.current.snapToIndex(0)
-                return
-            }
+        if (takingPhoto) {
+            bottomSheetRef.current.close();
+            return
         }
-    }, [itemStatus, takingPhoto, firstLoad])
+        // Bottom sheet should be close
+        if (!itemStatus.scanned && !itemStatus.editing) {
+            resetItem()
+            bottomSheetRef.current.close();
+            return
+        }
+        // Bottom sheet should be fully expanded
+        if (itemStatus.editing) {
+            bottomSheetRef.current.expand();
+            return
+        }
+        // Bottom sheet should be half expanded
+        if (itemStatus.scanned) {
+            bottomSheetRef.current.snapToIndex(0)
+            return
+        }
+    }, [itemStatus, takingPhoto])
 
     const handleBottomSheetChanged = (toPos) => {
         // Finish taking Photo
