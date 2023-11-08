@@ -3,6 +3,7 @@
 import dbUpgrade from "./db-upgrade.json"
 import * as SQLite from 'expo-sqlite'
 import openDatabase from "./openDatabase";
+import debugLog from "../utils/debug/debugLog";
 
 const schemaToSQL = (schema) => {
     const sqlTables = Object.keys(schema).map(table => {
@@ -13,14 +14,14 @@ const schemaToSQL = (schema) => {
     return sqlTables
 }
 
-export default function updateDatabase() {
+export default function updateDatabase({ debug }) {
     console.log('Update Database')
     const db = openDatabase();
 
 
     // Create tables with current schema return current version number if success
     const initialiseAllTables = () => {
-        console.log('INIT ALL TABLES')
+        debugLog({ debug, message: 'INIT ALL TABLES' })
         db.transaction(tx => {
             // Create the tables with current schema
             schemaToSQL(dbUpgrade.currentSchema).forEach((table) => {
@@ -40,21 +41,21 @@ export default function updateDatabase() {
             tx.executeSql("SELECT max(versionNumber) FROM version", [],
                 (txObj, results) => {
                     const currentVersion = results.rows._array[0]['max(versionNumber)'];
-                    console.log(`Database current version: ${currentVersion}`)
+                    debugLog({ debug, message: `Current version After Init: ${currentVersion}` })
+
                     const latestVersion = dbUpgrade.version
                     if (currentVersion < latestVersion) {
-                        console.log(`Database upgrading from version ${currentVersion} to version ${latestVersion}...`)
-                        alert(`Database upgrading from version ${currentVersion} to version ${latestVersion}...`)
+                        debugLog({ debug, message: `Database upgrading from version ${currentVersion} to version ${latestVersion}...` })
                         for (let i = currentVersion + 1; i <= latestVersion; i++) {
                             db.transaction(tx => {
                                 tx.executeSql(dbUpgrade.upgrades[`to_v${i}`],
                                     [],
                                     (txObj, result) => { },
-                                    (txObj, error) => alert(error))
+                                    (txObj, error) => debugLog({ debug, message: error }))
                                 tx.executeSql(`INSERT INTO version (versionNumber) values (?)`, [i],
                                     [],
                                     (txObj, result) => { },
-                                    (txObj, error) => alert(error))
+                                    (txObj, error) => debugLog({ debug, message: error }))
                             })
                         }
                     }
@@ -84,7 +85,7 @@ export default function updateDatabase() {
     db.transaction(tx => {
         tx.executeSql(`CREATE TABLE IF NOT EXISTS version (versionNumber INTEGER)`, [],
             (txObj, results) => { },
-            (txObj, error) => console.log(error))
+            (txObj, error) => debugLog({ debug, message: error }))
     })
 
     // Check if any version is present
@@ -92,16 +93,17 @@ export default function updateDatabase() {
         tx.executeSql("SELECT max(versionNumber) FROM version", [],
             (txObj, results) => {
                 const version = results.rows._array[0]['max(versionNumber)'];
-                console.log('Current Version: ', version)
+                debugLog({ debug, message: `Current Version: ${version}` })
                 // version table doesn't exist or it does not have any entry
                 if (!version) {
                     if (initialiseAllTables()) {
-                        console.log('INIT ALL TABLES SUCCESS')
+                        debugLog({ debug, message: 'INIT ALL TABLES SUCCESS' })
                         return
                     } else {
                         /* Cannot initialise tables. It might be becuase the app is 
                         in a version which didnt have the version table but have list
                         and barcodeMap table, which is database version 1*/
+                        debugLog({ debug, message: 'INIT ALL TABLES FAILED' })
                         tx.executeSql("INSERT INTO version (versionNumber) values (?)", [1],
                             (txObj, result) => { },
                             (txObj, error) => console.log(error))
