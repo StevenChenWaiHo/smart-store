@@ -1,5 +1,5 @@
-export default function debugLog({ debug = false, message }) {
-    if (debug) {
+export default function debugLog({ debugMode = false, message }) {
+    if (debugMode) {
         alert(message)
     } else {
         console.log(message)

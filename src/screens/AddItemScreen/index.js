@@ -127,7 +127,6 @@ export default function AddItemScreen({ route }) {
     }
 
     const handleBarCodeScanned = (barcode) => {
-        console.log('hi')
         if (itemStatus.editing) {
             return;
         }

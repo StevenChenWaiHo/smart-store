@@ -1,6 +1,5 @@
 import { Text, Image, ActivityIndicator, FlatList, RefreshControl, View, TouchableOpacity } from "react-native";
 import { Header, ListItem, Icon, Button } from '@rneui/themed';
-import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useReducer, useState, useRef } from "react";

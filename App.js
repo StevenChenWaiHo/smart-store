@@ -16,33 +16,32 @@ const Tab = createBottomTabNavigator();
 export default function App() {
 
   const [firstLoad, setFirstLoad] = useState(true);
-  const [debug, setDebug] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
 
   const enableDebugMode = () => {
-    setDebug(true);
+    setDebugMode(true);
     setFirstLoad(true)
   }
 
   const disableDebugMode = () => {
-    setDebug(false);
+    setDebugMode(false);
     setFirstLoad(true)
   }
 
   useEffect(() => {
     if (firstLoad) {
-      updateDatabase({ debug })
+      updateDatabase({ debugMode: debugMode })
       setFirstLoad(false)
     }
-  }, [firstLoad, debug])
+  }, [firstLoad, debugMode])
 
   useEffect(() => {
     const shakeEventListener = Accelerometer.addListener(accelerometerData => {
       if (isShaking(accelerometerData)) {
         // Handle the shake event here
-        console.log(debug)
         Alert.alert(
           "Debug Mode",
-          `Current Debug Mode: ${debug ? 'On' : 'Off'}`,
+          `Current Debug Mode: ${debugMode ? 'On' : 'Off'}`,
           [
             { text: "cancel", style:'cancel', onPress: () => {} },
             { text: "Disable", onPress: () => disableDebugMode()},
@@ -57,7 +56,7 @@ export default function App() {
       shakeEventListener.remove();
     };
 
-  }, [debug]);
+  }, [debugMode]);
 
   return !firstLoad && (
     <NavigationContainer>
