@@ -26,14 +26,13 @@ export default function updateDatabase() {
             schemaToSQL(dbUpgrade.currentSchema).forEach((table) => {
                 tx.executeSql(table, null,
                     (txObj, result) => { },
-                    (txObj, error) => console.log(error))
+                    (txObj, error) => { return false })
             })
             // Add version number to version table
             tx.executeSql("INSERT INTO version (versionNumber) values (?)", [dbUpgrade.version],
                 (txObj, result) => { return true },
-                (txObj, error) => console.log(error))
+                (txObj, error) => { return false })
         })
-        return false
     }
 
     const upgradeDatabaseToLatestVersion = () => {
@@ -41,6 +40,7 @@ export default function updateDatabase() {
             tx.executeSql("SELECT max(versionNumber) FROM version", [],
                 (txObj, results) => {
                     const currentVersion = results.rows._array[0]['max(versionNumber)'];
+                    console.log(`Database current version: ${currentVersion}`)
                     const latestVersion = dbUpgrade.version
                     if (currentVersion < latestVersion) {
                         console.log(`Database upgrading from version ${currentVersion} to version ${latestVersion}...`)
@@ -81,7 +81,6 @@ export default function updateDatabase() {
         })
     }
 
-
     db.transaction(tx => {
         tx.executeSql(`CREATE TABLE IF NOT EXISTS version (versionNumber INTEGER)`, [],
             (txObj, results) => { },
@@ -97,6 +96,7 @@ export default function updateDatabase() {
                 // version table doesn't exist or it does not have any entry
                 if (!version) {
                     if (initialiseAllTables()) {
+                        console.log('INIT ALL TABLES SUCCESS')
                         return
                     } else {
                         /* Cannot initialise tables. It might be becuase the app is 
