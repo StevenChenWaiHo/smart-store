@@ -15,7 +15,7 @@ const schemaToSQL = (schema) => {
 }
 
 export default function updateDatabase({ debug }) {
-    console.log('Update Database')
+    debugLog({ debug, message: 'Updating Database' })
     const db = openDatabase();
 
 
@@ -27,12 +27,12 @@ export default function updateDatabase({ debug }) {
             schemaToSQL(dbUpgrade.currentSchema).forEach((table) => {
                 tx.executeSql(table, null,
                     (txObj, result) => { },
-                    (txObj, error) => { return false })
+                    (txObj, error) => { debugLog({debug, message: error});  return false })
             })
             // Add version number to version table
             tx.executeSql("INSERT INTO version (versionNumber) values (?)", [dbUpgrade.version],
                 (txObj, result) => { return true },
-                (txObj, error) => { return false })
+                (txObj, error) => { debugLog({debug, message: error}); return false })
         })
     }
 
@@ -59,7 +59,8 @@ export default function updateDatabase({ debug }) {
                             })
                         }
                     }
-                })
+                },
+                (txObj, error) => { debugLog({ debug, message: error }) })
         })
     }
 
@@ -106,11 +107,13 @@ export default function updateDatabase({ debug }) {
                         debugLog({ debug, message: 'INIT ALL TABLES FAILED' })
                         tx.executeSql("INSERT INTO version (versionNumber) values (?)", [1],
                             (txObj, result) => { },
-                            (txObj, error) => console.log(error))
+                            (txObj, error) => { debugLog({ debug, message: error }) })
                     }
                 }
 
                 upgradeDatabaseToLatestVersion()
-            })
+            },
+            (txObj, error) => { debugLog({ debug, message: error }) }
+        )
     })
 }
