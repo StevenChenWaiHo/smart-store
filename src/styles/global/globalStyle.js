@@ -53,6 +53,9 @@ export const styles = StyleSheet.create({
     fontWeight: 'normal',
     fontSize: 10
   },
+  listItem: {
+    border: '1px black solid'
+  },
   itemListHeader: {
     width: '100%',
     height: '6%'

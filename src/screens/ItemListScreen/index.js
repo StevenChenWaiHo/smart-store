@@ -189,14 +189,14 @@ export default function ItemListScreen({ route }) {
           difference <= 5 ? `orange` : 'green')
   }
 
-  const RenderExpiryDateLabel = ({expiryDate}) => {
+  const RenderExpiryDateLabel = ({ expiryDate }) => {
     const difference = dateDifferenceInDays(expiryDate, new Date())
     const labelString =
       difference < 0 ? 'Expired' :
         difference === 0 ? 'Expiring Today' : `Expiring in ${difference} days`
 
     return (
-      <Text style={{...styles.labelWithBackground, backgroundColor: getExpiryDateLabelColor(expiryDate), color: 'white', fontWeight: 'bold'}}>{labelString}</Text>
+      <Text style={{ ...styles.labelWithBackground, backgroundColor: getExpiryDateLabelColor(expiryDate), color: 'white', fontWeight: 'bold' }}>{labelString}</Text>
     )
   }
 
@@ -207,6 +207,8 @@ export default function ItemListScreen({ route }) {
       item.dates.length > 1 ?
         // Multiple Dates
         <ListItem.Accordion
+          topDivider
+          bottomDivider
           key={i}
           content={
             <>
@@ -214,6 +216,7 @@ export default function ItemListScreen({ route }) {
                 source={{ uri: item?.dates?.[0]?.image }}
                 style={styles.itemListImage} />
               <ListItem.Content style={styles.listItemContent}>
+                <RenderExpiryDateLabel expiryDate={new Date(item?.dates?.[0].date)} />
                 <ListItem.Title>
                   <Text style={styles.bottomSheetBoldText}>{item?.itemName}</Text>
                 </ListItem.Title>
@@ -234,6 +237,8 @@ export default function ItemListScreen({ route }) {
           <View >
             {item.dates.map((date, j) => (
               <ListItem.Swipeable
+                topDivider
+                bottomDivider
                 key={j}
                 leftContent={(reset) => (
                   <Button
@@ -253,11 +258,11 @@ export default function ItemListScreen({ route }) {
                 )}
               >
                 <View style={{ ...styles.accordionListContainer, flexDirection: 'row' }}>
-                  <RenderExpiryDateLabel expiryDate={new Date(date.date)} />
                   <Image
                     source={{ uri: date.image }}
                     style={styles.itemListImage} />
                   <ListItem.Content style={styles.listItemContent}>
+                    <RenderExpiryDateLabel expiryDate={new Date(date.date)} />
                     <ListItem.Title>
                       <Text style={styles.bottomSheetText}>{dateNumberToString(date.date)}</Text>
                     </ListItem.Title>
@@ -274,6 +279,8 @@ export default function ItemListScreen({ route }) {
         :
         // Only one Date
         <ListItem.Swipeable
+          topDivider
+          bottomDivider
           leftContent={(reset) => (
             <Button
               title="Edit"
@@ -296,7 +303,7 @@ export default function ItemListScreen({ route }) {
               source={{ uri: item?.dates?.[0].image }}
               style={styles.itemListImage} />
             <ListItem.Content style={styles.listItemContent}>
-              <RenderExpiryDateLabel expiryDate={new Date(item?.dates?.[0].date)}/>
+              <RenderExpiryDateLabel expiryDate={new Date(item?.dates?.[0].date)} />
               <ListItem.Title>
                 <Text style={styles.bottomSheetBoldText}>{item?.itemName}</Text>
               </ListItem.Title>
@@ -321,7 +328,7 @@ export default function ItemListScreen({ route }) {
         style={{
           height: 0.5,
           width: '100%',
-          backgroundColor: '#C8C8C8'
+          backgroundColor: '#C8C8C8',
         }}
       />
     );
@@ -338,7 +345,6 @@ export default function ItemListScreen({ route }) {
           data={list}
           keyExtractor={(item, index) => index.toString()}
           includeseparatorComponent={ItemSeparatorView}
-          enableEmptySections={true}
           renderItem={ItemView}
           refreshControl={
             <RefreshControl

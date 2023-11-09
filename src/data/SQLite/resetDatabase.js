@@ -14,7 +14,6 @@ const schemaToSQL = (schema) => {
 
 export default function resetDatabase() {
     const db = SQLite.openDatabase('list.db');
-    console.log(db)
     db.transaction(tx => {
         tx.executeSql(`DROP TABLE IF EXISTS version`,
             [],
