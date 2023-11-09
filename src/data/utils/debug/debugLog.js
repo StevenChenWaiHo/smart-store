@@ -1,4 +1,4 @@
-export default function debugLog({ debugMode = false, message }) {
+export default function debugLog({ debugMode = true, message }) {
     if (debugMode) {
         alert(message)
     } else {

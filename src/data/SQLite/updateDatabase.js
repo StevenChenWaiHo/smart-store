@@ -23,7 +23,7 @@ export default function updateDatabase({ debugMode }) {
     const initialiseAllTables = () => {
         debugLog({ debugMode, message: 'INIT ALL TABLES' })
         transactionHandler(db,
-            async tx => {
+            tx => {
                 // Create the tables with current schema
                 schemaToSQL(dbUpgrade.currentSchema).forEach((table) => {
                     tx.executeSql(table, null,
@@ -67,26 +67,6 @@ export default function updateDatabase({ debugMode }) {
             }, debugMode)
     }
 
-    const deleteAllTables = () => {
-        transactionHandler(db,
-            tx => {
-                tx.executeSql(`DROP TABLE IF EXISTS version`,
-                    [],
-                    (txObj, result) => { console.log('DELETE version') },
-                    (txObj, error) => console.log(error))
-
-                tx.executeSql(`DROP TABLE IF EXISTS list`,
-                    [],
-                    (txObj, result) => { console.log('DELETE list') },
-                    (txObj, error) => console.log(error))
-
-                tx.executeSql(`DROP TABLE IF EXISTS barcodeMap`,
-                    [],
-                    (txObj, result) => { console.log('DELETE barcodeMap') },
-                    (txObj, error) => console.log(error))
-            }, debugMode)
-    }
-
     const checkAllTableSchema = () => {
         debugLog({ debugMode, message: 'Check All Table' })
         transactionHandler(db,
@@ -113,7 +93,6 @@ export default function updateDatabase({ debugMode }) {
             }, debugMode)
     }
 
-    // deleteAllTables()
     debugLog({debugMode, message: 'Current Database'})
     checkAllTableSchema()
 
@@ -134,7 +113,7 @@ export default function updateDatabase({ debugMode }) {
                     // version table doesn't exist or it does not have any entry
                     if (!version) {
                         initialiseAllTables()
-                        /* Cannot initialise tables. It might be becuase the app is 
+                        /* TODO: DELETE Cannot initialise tables. It might be becuase the app is 
                         in a version which didnt have the version table but have list
                         and barcodeMap table, which is database version 1*/
                         tx.executeSql("INSERT INTO version (versionNumber) values (?)", [1],

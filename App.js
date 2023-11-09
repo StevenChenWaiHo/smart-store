@@ -10,6 +10,7 @@ import { Accelerometer } from 'expo-sensors';
 import isShaking from './src/data/utils/motion/shake/isShaking';
 import debugLog from './src/data/utils/debug/debugLog';
 import { Alert } from 'react-native';
+import resetDatabase from './src/data/SQLite/resetDatabase';
 
 const Tab = createBottomTabNavigator();
 
@@ -35,6 +36,17 @@ export default function App() {
     }
   }, [firstLoad, debugMode])
 
+  const debugModeButtons = [
+    { text: "Reset Database", onPress: () => resetDatabase() },
+    { text: "Disable", onPress: () => disableDebugMode() },
+    { text: "Cancel", style: 'cancel', onPress: () => enableDebugMode() },
+  ]
+
+  const normalModeButtons = [
+    { text: "Enable", style: 'cancel', onPress: () => enableDebugMode() },
+    { text: "Cancel", style: 'cancel', onPress: () => { } },
+  ]
+
   useEffect(() => {
     const shakeEventListener = Accelerometer.addListener(accelerometerData => {
       if (isShaking(accelerometerData)) {
@@ -42,11 +54,7 @@ export default function App() {
         Alert.alert(
           "Debug Mode",
           `Current Debug Mode: ${debugMode ? 'On' : 'Off'}`,
-          [
-            { text: "cancel", style:'cancel', onPress: () => {} },
-            { text: "Disable", onPress: () => disableDebugMode()},
-            { text: "Enable", onPress: () => enableDebugMode() },
-          ],
+          debugMode ? debugModeButtons : normalModeButtons,
           { cancelable: false }
         );
       }
