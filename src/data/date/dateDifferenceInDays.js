@@ -8,12 +8,5 @@ export default function dateDifferenceInDays(oldDate, newDate) {
     newDate.setHours(8)
     newDate.setMinutes(0)
     newDate.setSeconds(0)
-    debugLog({
-        debugMode: true, message: `
-        ${oldDate.toString()} ${newDate.toString()}
-     ${parseInt(Math.ceil(oldDate / msToDay))} ${parseInt(Math.ceil(newDate / msToDay))}
-     ${Math.ceil(oldDate / msToDay)} ${Math.ceil(newDate / msToDay)}
-     ${oldDate/ msToDay} ${newDate/ msToDay}`
-    })
     return parseInt(Math.ceil(oldDate/ msToDay)) - parseInt(Math.ceil(newDate/ msToDay));
 }
