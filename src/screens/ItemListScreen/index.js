@@ -193,7 +193,8 @@ export default function ItemListScreen({ route }) {
     const difference = dateDifferenceInDays(expiryDate, new Date())
     const labelString =
       difference < 0 ? 'Expired' :
-        difference === 0 ? 'Expiring Today' : `Expiring in ${difference} days`
+        difference === 0 ? 'Expiring Today' :
+          difference === 1 ? `Expiring Tomorrow` : `Expiring in ${difference} days` 
 
     return (
       <Text style={{ ...styles.labelWithBackground, backgroundColor: getExpiryDateLabelColor(expiryDate), color: 'white', fontWeight: 'bold' }}>{labelString}</Text>
