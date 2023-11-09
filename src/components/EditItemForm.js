@@ -61,11 +61,12 @@ export default EditItemForm = ({
                         placeholder="Enter Date here"
                         style={styles.input}
                         value={dateNumberToString(item?.date)}
-                        editable={false}/>
+                        editable={false} />
                 </Pressable>
             </>) :
             (Platform.OS === 'ios' ? (
                 <DateTimePicker
+                    minimumDate={new Date()}
                     mode='date'
                     display='spinner'
                     value={new Date(item?.date)}
@@ -102,10 +103,11 @@ export default EditItemForm = ({
 
             {/* Inputs */}
             <View style={{ ...styles.topLeftContainer, flex: 2 }}>
-                <Text style={styles.inputLabel}>Date:</Text>
+                <Text style={styles.inputLabel}>Expiry Date:</Text>
                 <RenderDatePicker />
                 {(Platform.OS === 'android' && showAndroidDatePicker) &&
                     <DateTimePicker
+                        minimumDate={new Date()}
                         mode='date'
                         display='calendar'
                         value={new Date(item?.date)}

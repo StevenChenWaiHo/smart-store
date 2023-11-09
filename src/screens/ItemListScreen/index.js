@@ -14,6 +14,11 @@ import EditItemForm from '../../components/EditItemForm';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import updateItem from "../../data/SQLite/item/update/updateItem";
 import dateNumberToString from "../../data/utils/date/dateNumberToString";
+import pickImageFromLibrary from "../../data/image/utils/pickImageFromPhotoLibrary";
+import { useActionSheet } from "@expo/react-native-action-sheet";
+import getImageFromCamera from '../../data/image/utils/getImageFromCamera'
+import { Camera } from "expo-camera";
+import dateDifferenceInDays from "../../data/date/dateDifferenceInDays";
 
 export default function ItemListScreen({ route }) {
   const db = openDatabase();
@@ -81,6 +86,49 @@ export default function ItemListScreen({ route }) {
     }
   }
 
+
+  // Change Image
+
+  const [hasPermission, requestPermission] = Camera.useCameraPermissions();
+  const { showActionSheetWithOptions } = useActionSheet();
+
+  const getImageFromCameraOrPhotoLibrary = async () => {
+    if (!hasPermission) {
+      alert('Camera Permission Denied')
+      return
+    }
+
+    const options = ['Camera', 'Choose Photo From Gallery', 'Cancel'];
+    const cancelButtonIndex = 2;
+
+    showActionSheetWithOptions({
+      options,
+      cancelButtonIndex,
+    }, async (selectedIndex) => {
+      var image = null
+      switch (selectedIndex) {
+        case 0:
+          image = await getImageFromCamera()
+          break;
+
+        case 1:
+          image = await pickImageFromLibrary()
+          break;
+
+        case cancelButtonIndex:
+        // Canceled
+      }
+      if (image) {
+        setItemInEdit(prev => ({ ...prev, image }))
+        updateItem({ db, item: { ...item, image } })
+      }
+    });
+  }
+
+  const handleChangePhotoButton = async () => {
+    await getImageFromCameraOrPhotoLibrary()
+  }
+
   const handleItemListLeftButtonPress = (i, j) => {
     editItem(i, j);
   }
@@ -92,20 +140,19 @@ export default function ItemListScreen({ route }) {
         (txObj, resultList) => {
           bottomSheetRef.current.expand()
           console.log(resultList.rows._array[0])
-          setItemInEdit(sqlDataToState({...resultList.rows._array[0]}))
+          setItemInEdit(sqlDataToState({ ...resultList.rows._array[0] }))
         },
         (txObj, error) => console.log(error))
     })
   }
-  
+
   const handleSaveItem = () => {
-    const { id: id, ...data } = itemInEdit
-    updateItem({ db, id: id, data: data })
+    updateItem({ db, item: itemInEdit })
     bottomSheetRef.current.close()
     updateListFromDatabase()
   }
 
-  
+
   const useOneItem = (i, j) => {
     const tempItem = list[i].dates[j]
     const newQuantity = Math.max(tempItem.quantity - 1, 0)
@@ -132,6 +179,25 @@ export default function ItemListScreen({ route }) {
 
   const onRefresh = () => {
     updateListFromDatabase()
+  }
+
+  const getExpiryDateLabelColor = (expiryDate) => {
+    const difference = dateDifferenceInDays(expiryDate, new Date())
+    return (
+      difference < 0 ? 'black' :
+        difference === 0 ? 'red' :
+          difference <= 5 ? `orange` : 'green')
+  }
+
+  const RenderExpiryDateLabel = ({expiryDate}) => {
+    const difference = dateDifferenceInDays(expiryDate, new Date())
+    const labelString =
+      difference < 0 ? 'Expired' :
+        difference === 0 ? 'Expiring Today' : `Expiring in ${difference} days`
+
+    return (
+      <Text style={{...styles.labelWithBackground, backgroundColor: getExpiryDateLabelColor(expiryDate), color: 'white', fontWeight: 'bold'}}>{labelString}</Text>
+    )
   }
 
   const [expandedItemId, setExpandedItemId] = useState(-1);
@@ -187,6 +253,7 @@ export default function ItemListScreen({ route }) {
                 )}
               >
                 <View style={{ ...styles.accordionListContainer, flexDirection: 'row' }}>
+                  <RenderExpiryDateLabel expiryDate={new Date(date.date)} />
                   <Image
                     source={{ uri: date.image }}
                     style={styles.itemListImage} />
@@ -229,6 +296,7 @@ export default function ItemListScreen({ route }) {
               source={{ uri: item?.dates?.[0].image }}
               style={styles.itemListImage} />
             <ListItem.Content style={styles.listItemContent}>
+              <RenderExpiryDateLabel expiryDate={new Date(item?.dates?.[0].date)}/>
               <ListItem.Title>
                 <Text style={styles.bottomSheetBoldText}>{item?.itemName}</Text>
               </ListItem.Title>
@@ -290,7 +358,8 @@ export default function ItemListScreen({ route }) {
               setItemInEdit={setItemInEdit}
               handleCancel={() => bottomSheetRef.current.close()}
               rightButtonText='Save'
-              handleSubmit={handleSaveItem}/>
+              handleSubmit={handleSaveItem}
+              handleChangePhotoButton={handleChangePhotoButton} />
           </BottomSheetScrollView>
         </BottomSheet>
 

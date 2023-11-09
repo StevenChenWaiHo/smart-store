@@ -1,6 +1,6 @@
 
 import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet, Text, View, Button, TextInput, Pressable, TouchableOpacity, Image, Keyboard } from 'react-native';
+import { Platform, StyleSheet, Text, View, Button, ToastAndroid, TextInput, Pressable, TouchableOpacity, Image, Keyboard } from 'react-native';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -85,7 +85,7 @@ export default function AddItemScreen({ route }) {
         db.transaction(tx => {
             tx.executeSql('INSERT INTO list (itemName, date, quantity, image, notificationId, barcode, remarks) values (?, ?, ?, ?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image, notificationId, item.barcode, item.remarks],
                 (txObj, resultList) => {
-                    alert(`Added Item - ${item.itemName}`)
+                    ToastAndroid.show(`Added Item - ${item.itemName}`, ToastAndroid.SHORT);
                     setItemStatus({ editing: false, scanned: false })
                     resetItem();
                     console.log('Add to List', resultList.rows._array)
@@ -191,7 +191,7 @@ export default function AddItemScreen({ route }) {
     const RenderDatePicker = useCallback(() => {
         return Platform.OS === 'android' ? (
             <>
-                <Pressable
+                <Pressable style={styles.inputContainer}
                     onPress={toggleDatePicker}>
                     <TextInput
                         placeholder="Enter Date here"
@@ -203,6 +203,7 @@ export default function AddItemScreen({ route }) {
                 {
                     showDatePicker &&
                     (<DateTimePicker
+                        minimumDate={new Date()}
                         mode='date'
                         display={'calendar'}
                         value={date}
@@ -211,6 +212,7 @@ export default function AddItemScreen({ route }) {
             </>) :
             (Platform.OS === 'android' ? (
                 <DateTimePicker
+                    minimumDate={new Date()}
                     mode='date'
                     display='spinner'
                     value={date}
@@ -310,7 +312,7 @@ export default function AddItemScreen({ route }) {
                         <Text numberOfLines={1} style={styles.bottomSheetBoldText}>{item.itemName}</Text>
                         <Text style={styles.inputLabel}>Quantity:</Text>
                         <Counter start={quantity} onChange={onChangeQuantity} />
-                        <Text style={styles.inputLabel}>Date:</Text>
+                        <Text style={styles.inputLabel}>Expiry Date:</Text>
                         <RenderDatePicker />
                     </View>
                     <View style={{ ...styles.bottomRightContainer, flex: 1, flexDirection: 'row' }}>
@@ -375,7 +377,7 @@ export default function AddItemScreen({ route }) {
 
             {/* Inputs */}
             <View style={{ ...styles.topLeftContainer, flex: 2 }}>
-                <Text style={styles.inputLabel}>Date:</Text>
+                <Text style={styles.inputLabel}>Expiry Date:</Text>
                 <RenderDatePicker />
 
                 <Text style={styles.inputLabel} >Quantity:</Text>

@@ -11,6 +11,7 @@ import isShaking from './src/data/utils/motion/shake/isShaking';
 import debugLog from './src/data/utils/debug/debugLog';
 import { Alert } from 'react-native';
 import resetDatabase from './src/data/SQLite/resetDatabase';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 
 const Tab = createBottomTabNavigator();
 
@@ -67,39 +68,42 @@ export default function App() {
   }, [debugMode]);
 
   return !firstLoad && (
-    <NavigationContainer>
-      <Tab.Navigator
-        shifting={true}>
-        <Tab.Screen
-          name="Add Item"
-          component={AddItemScreen}
-          options={{
-            headerShown: false,
-            freezeOnBlur: false,
-            tabBarLabel: 'Add Item',
-            tabBarIcon: (({ }) => (
-              <Icon name='add-shopping-cart' />
-            ))
-          }} />
-        <Tab.Screen
-          name="List"
-          component={ItemListScreen}
-          options={{
-            headerShown: true,
-            headerStyle: {
-              backgroundColor: 'skyblue',
-            },
-            headerTitleStyle: {
-              color: 'white',
-            },
-            freezeOnBlur: false,
-            tabBarLabel: 'List',
-            tabBarIcon: (({ }) => (
-              <Icon name='list' />
-            ))
-          }} />
-      </Tab.Navigator>
-    </NavigationContainer>
+    <ActionSheetProvider>
+      <NavigationContainer>
+        <Tab.Navigator
+          shifting={true}>
+          <Tab.Screen
+            name="Add Item"
+            component={AddItemScreen}
+            options={{
+              headerShown: false,
+              freezeOnBlur: false,
+              tabBarLabel: 'Add Item',
+              tabBarIcon: (({ }) => (
+                <Icon name='add-shopping-cart' />
+              ))
+            }} />
+          <Tab.Screen
+            name="List"
+            component={ItemListScreen}
+            options={{
+              headerShown: true,
+              headerStyle: {
+                backgroundColor: 'skyblue',
+              },
+              headerTitleStyle: {
+                color: 'white',
+              },
+              freezeOnBlur: false,
+              tabBarLabel: 'List',
+              tabBarIcon: (({ }) => (
+                <Icon name='list' />
+              ))
+            }} />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </ActionSheetProvider>
+
 
   );
 }

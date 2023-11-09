@@ -35,6 +35,9 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     textDecorationLine: 'underline',
   },
+  labelWithBackground: {
+    padding: 1
+  },
   inputLabel: {
     fontWeight: 'bold',
     fontSize: 15,
