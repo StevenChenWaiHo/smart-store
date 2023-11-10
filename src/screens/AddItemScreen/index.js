@@ -311,7 +311,7 @@ export default function AddItemScreen({ route }) {
                         <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
                         <Text numberOfLines={1} style={styles.bottomSheetBoldText}>{item.itemName}</Text>
                         <Text style={styles.inputLabel}>Quantity:</Text>
-                        <Counter start={quantity} onChange={onChangeQuantity} />
+                        <Counter start={quantity} onChange={onChangeQuantity} max={100} />
                         <Text style={styles.inputLabel}>Expiry Date:</Text>
                         <RenderDatePicker />
                     </View>
