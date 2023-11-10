@@ -381,7 +381,7 @@ export default function AddItemScreen({ route }) {
                 <RenderDatePicker />
 
                 <Text style={styles.inputLabel} >Quantity:</Text>
-                <Counter start={quantity} onChange={onChangeQuantity} />
+                <Counter start={quantity} onChange={onChangeQuantity} max={100} />
 
                 <Text style={styles.inputLabel} >Remarks:</Text>
                 <TextInput
