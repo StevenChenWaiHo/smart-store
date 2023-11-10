@@ -1,8 +1,7 @@
 {
   "expo": {
-    "name": "smart-store",
-    "slug": "smart-store",
-    "displayName": "FreshTrack",
+    "name": "FreshTrack",
+    "slug": "fresh-track",
     "version": "1.2.6",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
