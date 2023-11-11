@@ -17,6 +17,8 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Counter from 'react-native-counters';
 import openDatabase from '../../data/SQLite/openDatabase'
+import EditItemForm from '../../components/EditItemForm';
+import dateNumberToString from '../../data/utils/date/dateNumberToString';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -38,37 +40,65 @@ export default function AddItemScreen({ route }) {
     const [date, setDate] = useState(new Date());
     const [dateString, setDateString] = useState('');
     const [remarks, setRemarks] = useState('')
-    const [image, setImage] = useState(defaultImage);
+    const [image, setImage] = useState();
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [takingPhoto, setTakingPhoto] = useState(false);
     const [barcodeFound, setBarcodeFound] = useState({ status: false, from: '' })
+
+    const [item, setItem] = useState(emptyItem)
+
     const focused = useIsFocused();
 
-    const item = {
-        barcode: barcode.data,
-        image,
-        date: Math.floor(date.getTime()), // ios result in decimal number
-        itemName,
-        quantity: Number(quantity) || 1,
-        remarks,
+    const dateToInteger = (date) => {
+        return Math.floor(date.getTime())
     }
+
+    const emptyItem = {
+        barcode: '',
+        image: defaultImage,
+        date: Math.floor(new Date().getTime()), // INTEGER NUMBER
+        itemName: '',
+        quantity: 1,
+        remarks: '',
+    }
+
+
+    const setItemHandler = (newData) => {
+        setItem(prev => ({ ...prev, ...newData }))
+    }
+
+    // const item = {
+    //     barcode: barcode.data,
+    //     image,
+    //     date: Math.floor(date.getTime()), // ios result in decimal number
+    //     itemName,
+    //     quantity: Number(quantity) || 1,
+    //     remarks,
+    // }
+
+    // const resetItem = () => {
+    //     setBarcodeFound({ status: false, from: '' })
+    //     setBarcode(0)
+    //     setItemName('');
+    //     setQuantity(1);
+    //     const newDate = new Date();
+    //     setDate(newDate);
+    //     setDateString(newDate.toDateString());
+    //     setImage(defaultImage);
+    //     setRemarks('')
+    // }
 
     const resetItem = () => {
+        setItem(emptyItem)
         setBarcodeFound({ status: false, from: '' })
-        setBarcode(0)
-        setItemName('');
-        setQuantity(1);
-        const newDate = new Date();
-        setDate(newDate);
-        setDateString(newDate.toDateString());
-        setImage(defaultImage);
-        setRemarks('')
     }
 
-    const updatedScannedItem = (item) => {
-        setItemName(item?.itemName);
-        setQuantity(item?.quantity);
-        setImage(item?.image);
+    const updatedScannedItemFromList = (item) => {
+        setItemHandler({
+            itemName: item?.itemName,
+            quantity: item?.quantity,
+            image: item?.image
+        })
     }
 
     const addItemToList = async (event) => {
@@ -116,7 +146,7 @@ export default function AddItemScreen({ route }) {
 
     const takePicture = async () => {
         const picture = await cameraRef.current.takePictureAsync();
-        setImage(picture.uri);
+        setItemHandler({ image: picture.uri });
         bottomSheetRef.current.expand();
 
         if (!itemStatus.editing) {
@@ -130,14 +160,14 @@ export default function AddItemScreen({ route }) {
         if (itemStatus.editing) {
             return;
         }
-        setBarcode(barcode);
+        setItemHandler({ barcode: barcode.data });
         db.transaction(tx => {
             tx.executeSql('SELECT * FROM barcodeMap WHERE barcode = (?)', [barcode.data],
                 (txObj, resultList) => {
                     setItemStatus({ editing: false, scanned: true })
                     if (resultList.rows.length === 1) {
                         setBarcodeFound({ status: true, from: 'sql' });
-                        updatedScannedItem(resultList.rows._array[0])
+                        updatedScannedItemFromList(resultList.rows._array[0])
                     } else {
                         fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode.data}.json`)
                             .then((response) => response.json())
@@ -145,7 +175,7 @@ export default function AddItemScreen({ route }) {
                                 // Product Found
                                 if (json.status === 1) {
                                     setBarcodeFound({ status: true, from: 'api' });
-                                    updatedScannedItem({
+                                    updatedScannedItemFromList({
                                         itemName: json?.product?.product_name || 'Not Found',
                                         quantity: Number(json?.product?.quantity) || 1,
                                         image: json?.product?.image_url || defaultImage,
@@ -166,10 +196,6 @@ export default function AddItemScreen({ route }) {
         }
     }, [hasPermission])
 
-    const handleChangePhotoButton = () => {
-        setTakingPhoto(true);
-    }
-
     // Date
     const toggleDatePicker = () => {
         setShowDatePicker(!showDatePicker)
@@ -180,9 +206,8 @@ export default function AddItemScreen({ route }) {
             const currentDate = selectedDate;
             if (Platform.OS === "android") {
                 toggleDatePicker();
-                setDateString(currentDate.toDateString())
             }
-            setDate(selectedDate)
+            setItemHandler({ date: dateToInteger(currentDate) })
         } else {
             toggleDatePicker()
         }
@@ -196,7 +221,7 @@ export default function AddItemScreen({ route }) {
                     <TextInput
                         placeholder="Enter Date here"
                         style={styles.input}
-                        value={dateString}
+                        value={dateNumberToString(item?.date)}
                         editable={false}
                         onPressIn={toggleDatePicker} />
                 </Pressable>
@@ -206,7 +231,7 @@ export default function AddItemScreen({ route }) {
                         minimumDate={new Date()}
                         mode='date'
                         display={'calendar'}
-                        value={date}
+                        value={new Date(item?.date)}
                         onChange={onChangeDate} />)
                 }
             </>) :
@@ -215,15 +240,15 @@ export default function AddItemScreen({ route }) {
                     minimumDate={new Date()}
                     mode='date'
                     display='spinner'
-                    value={date}
+                    value={new Date(item?.date)}
                     onChange={onChangeDate}
                     style={styles.datePickerIos} />) : <></>)
-    }, [date, showDatePicker])
+    }, [item?.date, showDatePicker])
 
 
 
     const onChangeQuantity = (number, type) => {
-        setQuantity(number)
+        setItemHandler({ quantity: number })
     }
 
     // Bottom Sheet
@@ -246,6 +271,14 @@ export default function AddItemScreen({ route }) {
         stiffness: 500,
     });
 
+    // Force close bottom sheet when rendered
+    const RenderEmptySheet = () => {
+        return (
+            <Button
+                onPress={() => setItemStatus({ editing: false, scanned: false })}
+                title="Cancel" />)
+    }
+
     useEffect(() => {
         if (takingPhoto) {
             bottomSheetRef.current.close();
@@ -254,9 +287,11 @@ export default function AddItemScreen({ route }) {
         // Bottom sheet should be close
         if (!itemStatus.scanned && !itemStatus.editing) {
             resetItem()
-            bottomSheetRef.current.close();
+            setForcingClose(true)
+            bottomSheetRef.current.forceClose();
             return
         }
+        setForcingClose(false)
         // Bottom sheet should be fully expanded
         if (itemStatus.editing) {
             bottomSheetRef.current.expand();
@@ -295,6 +330,9 @@ export default function AddItemScreen({ route }) {
         }
     }
 
+    const RenderCounter = () => {
+        return <Counter start={item?.quantity} onChange={onChangeQuantity} max={100} />
+    }
 
     const RenderBottomSheetWhenScanned =
         barcodeFound.status ? (
@@ -302,16 +340,16 @@ export default function AddItemScreen({ route }) {
                 <View style={{ ...styles.topCenteredContainer, flex: 2 }}>
                     <View style={styles.bottomSheetImageContainer}>
                         <Image
-                            source={{ uri: image }}
+                            source={{ uri: item?.image }}
                             style={styles.bottomSheetImage} />
                     </View>
                 </View>
                 <View style={{ flexDirection: 'column', flex: 4 }}>
                     <View style={{ ...styles.topLeftContainer, flex: 2 }}>
-                        <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
-                        <Text numberOfLines={1} style={styles.bottomSheetBoldText}>{item.itemName}</Text>
+                        <Text style={styles.bottomSheetSmallText}>Code: {item?.barcode}</Text>
+                        <Text numberOfLines={1} style={styles.bottomSheetBoldText}>{item?.itemName}</Text>
                         <Text style={styles.inputLabel}>Quantity:</Text>
-                        <Counter start={quantity} onChange={onChangeQuantity} max={100} />
+                        <RenderCounter />
                         <Text style={styles.inputLabel}>Expiry Date:</Text>
                         <RenderDatePicker />
                     </View>
@@ -335,8 +373,8 @@ export default function AddItemScreen({ route }) {
                 <View style={styles.barcodeUnknownBottomSheetContainer}>
                     <View style={{ flexDirection: 'column', flex: 4 }}>
                         <View style={{ ...styles.topLeftContainer, flex: 2 }}>
-                            <Text style={styles.bottomSheetBoldText}>Code: {barcode.data}</Text>
-                            <Text style={styles.bottomSheetBoldText}>{itemName || 'Not Found in Database'}</Text>
+                            <Text style={styles.bottomSheetBoldText}>Code: {item?.barcode}</Text>
+                            <Text style={styles.bottomSheetBoldText}>{item?.itemName || 'Not Found in Database'}</Text>
                         </View>
                         <View style={{ ...styles.bottomRightContainer, flex: 1 }}>
                             <Button
@@ -347,75 +385,75 @@ export default function AddItemScreen({ route }) {
                     </View>
                 </View>)
 
-    const RenderBottomSheetWhenEditing = (
-        <View style={styles.inputSheetContainer}>
+    // const RenderBottomSheetWhenEditing = (
+    //     <View style={styles.inputSheetContainer}>
 
-            {/* Item Name Input */}
-            <View style={{ ...styles.topCenteredContainer, flex: 2, flexDirection: 'row' }}>
-                <View style={{ ...styles.topCenteredContainer, flex: 3 }}>
-                    <TouchableOpacity
-                        style={styles.fullExpandedBottomSheetImageContainer}
-                        onPress={handleChangePhotoButton}>
-                        <Image
-                            source={{ uri: image }}
-                            style={styles.bottomSheetImage} />
-                    </TouchableOpacity>
-                </View>
-                <View style={{ ...styles.topLeftContainer, flex: 4 }}>
-                    <Text style={styles.bottomSheetSmallText}>Code: {barcode.data}</Text>
-                    <Text style={styles.inputLabel} >Item Name:</Text>
-                    <TextInput
-                        value={item.itemName}
-                        placeholder="Enter Item Name Here"
-                        style={styles.input}
-                        clearButtonMode='while-editing'
-                        enterKeyHint='done'
-                        onChangeText={(val) => setItemName(val)}
-                    />
-                </View>
-            </View>
+    //         {/* Item Name Input */}
+    //         <View style={{ ...styles.topCenteredContainer, flex: 2, flexDirection: 'row' }}>
+    //             <View style={{ ...styles.topCenteredContainer, flex: 3 }}>
+    //                 <TouchableOpacity
+    //                     style={styles.fullExpandedBottomSheetImageContainer}
+    //                     onPress={handleChangePhotoButton}>
+    //                     <Image
+    //                         source={{ uri: item?.image }}
+    //                         style={styles.bottomSheetImage} />
+    //                 </TouchableOpacity>
+    //             </View>
+    //             <View style={{ ...styles.topLeftContainer, flex: 4 }}>
+    //                 <Text style={styles.bottomSheetSmallText}>Code: {item?.barcode}</Text>
+    //                 <Text style={styles.inputLabel} >Item Name:</Text>
+    //                 <TextInput
+    //                     value={item?.itemName}
+    //                     placeholder="Enter Item Name Here"
+    //                     style={styles.input}
+    //                     clearButtonMode='while-editing'
+    //                     enterKeyHint='done'
+    //                     onChangeText={(val) => setItemHandler({itemName: val})}
+    //                 />
+    //             </View>
+    //         </View>
 
-            {/* Inputs */}
-            <View style={{ ...styles.topLeftContainer, flex: 2 }}>
-                <Text style={styles.inputLabel}>Expiry Date:</Text>
-                <RenderDatePicker />
+    //         {/* Inputs */}
+    //         <View style={{ ...styles.topLeftContainer, flex: 2 }}>
+    //             <Text style={styles.inputLabel}>Expiry Date:</Text>
+    //             <RenderDatePicker />
 
-                <Text style={styles.inputLabel} >Quantity:</Text>
-                <Counter start={quantity} onChange={onChangeQuantity} max={100} />
+    //             <Text style={styles.inputLabel} >Quantity:</Text>
+    //             <Counter start={item?.quantity} onChange={onChangeQuantity} max={100} />
 
-                <Text style={styles.inputLabel} >Remarks:</Text>
-                <TextInput
-                    editable
-                    multiline
-                    numberOfLines={5}
-                    maxLength={300}
-                    style={styles.mutilineInput}
-                    clearButtonMode='while-editing'
-                    enterKeyHint='done'
-                    onChangeText={(val) => setRemarks(val)}
-                />
-            </View>
+    //             <Text style={styles.inputLabel} >Remarks:</Text>
+    //             <TextInput
+    //                 editable
+    //                 multiline
+    //                 numberOfLines={5}
+    //                 maxLength={300}
+    //                 style={styles.mutilineInput}
+    //                 clearButtonMode='while-editing'
+    //                 enterKeyHint='done'
+    //                 onChangeText={(val) => setItemHandler({remarks: val})}
+    //             />
+    //         </View>
 
-            {/* Buttons */}
-            <View style={{ ...styles.topCenteredContainer, flex: 1 }}>
-                <View style={{ flexDirection: 'row' }}>
-                    <View style={{ ...styles.buttonContainer, flex: 2 }}>
-                        <Button
-                            onPress={() => setItemStatus({ editing: false, scanned: false })}
-                            title="Cancel"
-                            style={styles.button} />
-                    </View>
-                    <View style={{ ...styles.buttonContainer, flex: 2 }}>
-                        <Button
-                            onPress={addItemToList}
-                            title="Add To List"
-                            style={styles.button} />
-                    </View>
-                </View>
+    //         {/* Buttons */}
+    //         <View style={{ ...styles.topCenteredContainer, flex: 1 }}>
+    //             <View style={{ flexDirection: 'row' }}>
+    //                 <View style={{ ...styles.buttonContainer, flex: 2 }}>
+    //                     <Button
+    //                         onPress={() => setItemStatus({ editing: false, scanned: false })}
+    //                         title="Cancel"
+    //                         style={styles.button} />
+    //                 </View>
+    //                 <View style={{ ...styles.buttonContainer, flex: 2 }}>
+    //                     <Button
+    //                         onPress={addItemToList}
+    //                         title="Add To List"
+    //                         style={styles.button} />
+    //                 </View>
+    //             </View>
 
-            </View>
-        </View>
-    )
+    //         </View>
+    //     </View>
+    // )
 
     // Notification
     const [expoPushToken, setExpoPushToken] = useState('');
@@ -517,11 +555,17 @@ export default function AddItemScreen({ route }) {
                     onChange={handleBottomSheetChanged}
                     animationConfigs={animationConfigs}>
                     <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContainer}>
-                        {itemStatus.editing ? (RenderBottomSheetWhenEditing) :
+                        {itemStatus.editing ? (
+                            <EditItemForm
+                                itemInEdit={item}
+                                setItemInEdit={setItem}
+                                handleCancel={() => setItemStatus({ editing: false, scanned: false })}
+                                rightButtonText='Add To List'
+                                handleSubmit={() => addItemToList()}
+                                handleChangePhotoButton={() => setTakingPhoto(true)} />
+                        ) :
                             itemStatus.scanned ? (RenderBottomSheetWhenScanned)
-                                : <><Button
-                                    onPress={() => setItemStatus({ editing: false, scanned: false })}
-                                    title="Cancel" /></>}
+                                : <><RenderEmptySheet /></>}
                     </BottomSheetScrollView>
                 </BottomSheet>
 

@@ -9,7 +9,7 @@ import dateNumberToString from "../data/utils/date/dateNumberToString"
 
 
 export default EditItemForm = ({
-    item = {},
+    itemInEdit = {},
     setItemInEdit,
     handleSubmit,
     handleCancel,
@@ -33,7 +33,7 @@ export default EditItemForm = ({
     }
 
     const RenderCounter = () => {
-        return <Counter start={item?.quantity} onChange={onChangeQuantity} max={100} />
+        return <Counter start={itemInEdit?.quantity} onChange={onChangeQuantity} max={100} />
     }
 
     const toggleDatePicker = () => {
@@ -60,7 +60,7 @@ export default EditItemForm = ({
                     <TextInput
                         placeholder="Enter Date here"
                         style={styles.input}
-                        value={dateNumberToString(item?.date)}
+                        value={dateNumberToString(itemInEdit?.date)}
                         editable={false} />
                 </Pressable>
             </>) :
@@ -68,10 +68,10 @@ export default EditItemForm = ({
                 <DateTimePicker
                     mode='date'
                     display='spinner'
-                    value={item?.date ? new Date(item?.date) : new Date()}
+                    value={itemInEdit?.date ? new Date(itemInEdit?.date) : new Date()}
                     onChange={onChangeDate}
                     style={styles.datePickerIos} />) : <></>)
-    }, [item?.date])
+    }, [itemInEdit?.date])
 
     return (
         <View style={styles.inputSheetContainer}>
@@ -82,15 +82,15 @@ export default EditItemForm = ({
                         style={styles.fullExpandedBottomSheetImageContainer}
                         onPress={handleChangePhotoButton}>
                         <Image
-                            source={{ uri: item?.image }}
+                            source={{ uri: itemInEdit?.image }}
                             style={styles.bottomSheetImage} />
                     </TouchableOpacity>
                 </View>
                 <View style={{ ...styles.topLeftContainer, flex: 4 }}>
-                    <Text style={styles.bottomSheetSmallText}>Code: {item?.barcode}</Text>
+                    <Text style={styles.bottomSheetSmallText}>Code: {itemInEdit?.barcode}</Text>
                     <Text style={styles.inputLabel} >Item Name:</Text>
                     <TextInput
-                        value={item?.itemName}
+                        value={itemInEdit?.itemName}
                         placeholder="Enter Item Name Here"
                         style={styles.input}
                         clearButtonMode='while-editing'
@@ -109,7 +109,7 @@ export default EditItemForm = ({
                         minimumDate={new Date()}
                         mode='date'
                         display='calendar'
-                        value={new Date(item?.date)}
+                        value={new Date(itemInEdit?.date)}
                         onChange={onChangeDate} />}
 
                 <Text style={styles.inputLabel} >Quantity:</Text>
@@ -121,7 +121,7 @@ export default EditItemForm = ({
                     multiline
                     numberOfLines={5}
                     maxLength={300}
-                    value={item?.remarks}
+                    value={itemInEdit?.remarks}
                     style={styles.mutilineInput}
                     clearButtonMode='while-editing'
                     enterKeyHint='done'

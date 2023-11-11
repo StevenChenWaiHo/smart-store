@@ -120,7 +120,6 @@ export default function ItemListScreen({ route }) {
       }
       if (image) {
         setItemInEdit(prev => ({ ...prev, image }))
-        updateItem({ db, item: { ...item, image } })
       }
     });
   }
@@ -147,7 +146,7 @@ export default function ItemListScreen({ route }) {
   }
 
   const handleSaveItem = () => {
-    updateItem({ db, item: itemInEdit })
+    updateItem({ db, item: itemInEdit, skipUpdateQuantityInBarcodeMap: true })
     bottomSheetRef.current.close()
     updateListFromDatabase()
   }
@@ -361,7 +360,7 @@ export default function ItemListScreen({ route }) {
           snapPoints={['100%']}>
           <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContainer}>
             <EditItemForm
-              item={itemInEdit}
+              itemInEdit={itemInEdit}
               setItemInEdit={setItemInEdit}
               handleCancel={() => bottomSheetRef.current.close()}
               rightButtonText='Save'

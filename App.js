@@ -76,7 +76,14 @@ export default function App() {
             name="Add Item"
             component={AddItemScreen}
             options={{
-              headerShown: false,
+              headerShown: true,
+              headerTitle: 'Scan Barcode To Add Item',
+              headerStyle: {
+                backgroundColor: 'orange',
+              },
+              headerTitleStyle: {
+                color: 'white',
+              },
               freezeOnBlur: false,
               tabBarLabel: 'Add Item',
               tabBarIcon: (({ }) => (
@@ -89,7 +96,7 @@ export default function App() {
             options={{
               headerShown: true,
               headerStyle: {
-                backgroundColor: 'skyblue',
+                backgroundColor: 'orange',
               },
               headerTitleStyle: {
                 color: 'white',
