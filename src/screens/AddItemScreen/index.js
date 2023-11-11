@@ -308,11 +308,13 @@ export default function AddItemScreen({ route }) {
             setTakingPhoto(false);
             return
         }
+        
         // Item Confirmed when swipe up after scanned
         if (!itemStatus.editing && itemStatus.scanned && toPos === 1) {
             setItemStatus({ editing: true, scanned: true })
             return
         }
+        
         // Discard scanned item after bottom sheet is closed
         if (!takingPhoto && !itemStatus.editing && itemStatus.scanned && toPos === -1) {
             setItemStatus({ editing: false, scanned: false })
