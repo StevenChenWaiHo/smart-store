@@ -84,6 +84,10 @@ export default EditItemForm = ({
                         <Image
                             source={{ uri: itemInEdit?.image }}
                             style={styles.bottomSheetImage} />
+                        <View style={styles.imageOverlayTextContainer}>
+                            <Text style={styles.imageOverlayText}>Edit</Text>
+                        </View>
+
                     </TouchableOpacity>
                 </View>
                 <View style={{ ...styles.topLeftContainer, flex: 4 }}>

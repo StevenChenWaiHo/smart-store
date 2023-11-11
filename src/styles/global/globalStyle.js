@@ -105,14 +105,14 @@ export const styles = StyleSheet.create({
   barcodeKnownBottomSheetContainer: {
     height: '35%',
     width: '100%',
-    flexDirection: 'row', 
+    flexDirection: 'row',
     margin: 10,
     paddingRight: 10,
   },
   barcodeUnknownBottomSheetContainer: {
     height: '20%',
     width: '100%',
-    flexDirection: 'row', 
+    flexDirection: 'row',
     margin: 10,
   },
   bottomSheetImageContainer: {
@@ -128,6 +128,18 @@ export const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
+    alignItems: 'center',
+  },
+  imageOverlayTextContainer: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  imageOverlayText: {
+    fontWeight: 'bold',
+    color: 'white',
+    fontSize: 15,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   fullExpandedBottomSheetImageContainer: {
