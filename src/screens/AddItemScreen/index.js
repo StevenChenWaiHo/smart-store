@@ -287,11 +287,9 @@ export default function AddItemScreen({ route }) {
         // Bottom sheet should be close
         if (!itemStatus.scanned && !itemStatus.editing) {
             resetItem()
-            setForcingClose(true)
-            bottomSheetRef.current.forceClose();
+            bottomSheetRef.current.close();
             return
         }
-        setForcingClose(false)
         // Bottom sheet should be fully expanded
         if (itemStatus.editing) {
             bottomSheetRef.current.expand();
@@ -313,13 +311,6 @@ export default function AddItemScreen({ route }) {
         // Item Confirmed when swipe up after scanned
         if (!itemStatus.editing && itemStatus.scanned && toPos === 1) {
             setItemStatus({ editing: true, scanned: true })
-            return
-        }
-
-    }
-
-    const handleBottomSheetAnimated = (fromPos, toPos) => {
-        if (takingPhoto) {
             return
         }
         // Discard scanned item after bottom sheet is closed
@@ -551,7 +542,6 @@ export default function AddItemScreen({ route }) {
                     index={-1}
                     snapPoints={snapPoints}
                     enablePanDownToClose={!itemStatus.editing}
-                    onAnimate={handleBottomSheetAnimated}
                     onChange={handleBottomSheetChanged}
                     animationConfigs={animationConfigs}>
                     <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContainer}>
