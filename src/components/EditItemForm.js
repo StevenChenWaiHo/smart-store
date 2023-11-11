@@ -75,9 +75,9 @@ export default EditItemForm = ({
 
     return (
         <View style={styles.inputSheetContainer}>
-            {/* Item Name Input */}
             <View style={{ ...styles.topCenteredContainer, flex: 1, flexDirection: 'row' }}>
                 <View style={{ ...styles.topCenteredContainer, flex: 3 }}>
+                    {/* Change Item Image Button*/}
                     <TouchableOpacity
                         style={styles.fullExpandedBottomSheetImageContainer}
                         onPress={handleChangePhotoButton}>
@@ -92,6 +92,7 @@ export default EditItemForm = ({
                 </View>
                 <View style={{ ...styles.topLeftContainer, flex: 4 }}>
                     <Text style={styles.bottomSheetSmallText}>Code: {itemInEdit?.barcode}</Text>
+                    {/* Item Name Input */}
                     <Text style={styles.inputLabel} >Item Name:</Text>
                     <TextInput
                         value={itemInEdit?.itemName}
@@ -106,6 +107,7 @@ export default EditItemForm = ({
 
             {/* Inputs */}
             <View style={{ ...styles.topLeftContainer, flex: 2 }}>
+                {/* Date Input*/}
                 <Text style={styles.inputLabel}>Expiry Date:</Text>
                 <RenderDatePicker />
                 {(Platform.OS === 'android' && showAndroidDatePicker) &&
@@ -116,9 +118,11 @@ export default EditItemForm = ({
                         value={new Date(itemInEdit?.date)}
                         onChange={onChangeDate} />}
 
+                {/* Quantity Input*/}
                 <Text style={styles.inputLabel} >Quantity:</Text>
                 <RenderCounter />
 
+                {/* Remarks Input*/}
                 <Text style={styles.inputLabel} >Remarks:</Text>
                 <TextInput
                     editable
@@ -135,6 +139,7 @@ export default EditItemForm = ({
 
             {/* Buttons */}
             <View style={{ ...styles.container, flex: 1 }}>
+                {/* Cancel Button */}
                 <View style={{ flexDirection: 'row' }}>
                     <View style={{ ...styles.buttonContainer, flex: 1 }}>
                         <Button
@@ -142,6 +147,7 @@ export default EditItemForm = ({
                             title="Cancel"
                             style={styles.button} />
                     </View>
+                    {/* Save Button */}
                     <View style={{ ...styles.buttonContainer, flex: 1 }}>
                         <Button
                             onPress={handleSubmit}

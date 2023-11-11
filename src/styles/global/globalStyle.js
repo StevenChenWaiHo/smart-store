@@ -181,6 +181,7 @@ export const styles = StyleSheet.create({
     padding: 10,
     textAlignVertical: 'top',
     backgroundColor: '#f2f2f2',
+    height: '50%'
   },
   buttonContainer: {
     marginLeft: 10,
