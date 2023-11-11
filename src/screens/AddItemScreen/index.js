@@ -92,7 +92,7 @@ export default function AddItemScreen({ route }) {
                 },
                 (txObj, error) => alert(error))
         })
-        if (!itemStatus.scanned || !barcodeFound.status) {
+        if (!itemStatus.scanned) {
             return
         }
         if (barcodeFound.from === 'sql') {

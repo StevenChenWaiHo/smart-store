@@ -66,10 +66,9 @@ export default EditItemForm = ({
             </>) :
             (Platform.OS === 'ios' ? (
                 <DateTimePicker
-                    minimumDate={new Date()}
                     mode='date'
                     display='spinner'
-                    value={new Date(item?.date)}
+                    value={item?.date ? new Date(item?.date) : new Date()}
                     onChange={onChangeDate}
                     style={styles.datePickerIos} />) : <></>)
     }, [item?.date])
