@@ -10,7 +10,7 @@ This app is used to manage groceries and remind users when an item is expiring
 * Set notifications to remind expiring items
 
 # Support
-* iOS
+* iOS (Coming Soon)
 * Android
 
 # Demo
