@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AddItemScreen from './src/screens/AddItemScreen';
 import ItemListScreen from './src/screens/ItemListScreen';
 import { NavigationContainer } from '@react-navigation/native';
-import { Icon } from '@rneui/themed';
+import { Button, Icon } from '@rneui/themed';
 import updateDatabase from './src/data/SQLite/updateDatabase';
 import { Accelerometer } from 'expo-sensors';
 import isShaking from './src/data/utils/motion/shake/isShaking';
@@ -12,6 +12,7 @@ import debugLog from './src/data/utils/debug/debugLog';
 import { Alert } from 'react-native';
 import resetDatabase from './src/data/SQLite/resetDatabase';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
+import { styles } from './src/styles/global/globalStyle';
 
 const Tab = createBottomTabNavigator();
 
@@ -101,6 +102,13 @@ export default function App() {
               headerTitleStyle: {
                 color: 'white',
               },
+              headerRight: ({}) => (
+                <Button
+                  type="clear"
+                  icon={{ name: 'share', color: 'white' }}
+                  onPress={() => { }}
+                />
+              ),
               freezeOnBlur: false,
               tabBarLabel: 'List',
               tabBarIcon: (({ }) => (

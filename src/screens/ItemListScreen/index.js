@@ -1,5 +1,5 @@
-import { Text, Image, ActivityIndicator, FlatList, RefreshControl, View, TouchableOpacity } from "react-native";
-import { Header, ListItem, Icon, Button } from '@rneui/themed';
+import { Text, Image, ActivityIndicator, FlatList, RefreshControl, View, TouchableOpacity, Platform } from "react-native";
+import { Header, ListItem, Icon, Button, SearchBar } from '@rneui/themed';
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useReducer, useState, useRef } from "react";
@@ -38,6 +38,8 @@ export default function ItemListScreen({ route }) {
   const [, forceUpdate] = useReducer(x => x + 1, 0);
   const [itemInEdit, setItemInEdit] = useState({})
 
+  const [searchQuery, setSearchQuery] = useState("")
+  const filteredList = list.filter((item) => item?.itemName.includes(searchQuery))
 
   const updateList = (databaseList) => {
     setRefreshing(true)
@@ -193,7 +195,7 @@ export default function ItemListScreen({ route }) {
     const labelString =
       difference < 0 ? 'Expired' :
         difference === 0 ? 'Expiring Today' :
-          difference === 1 ? `Expiring Tomorrow` : `Expiring in ${difference} days` 
+          difference === 1 ? `Expiring Tomorrow` : `Expiring in ${difference} days`
 
     return (
       <Text style={{ ...styles.labelWithBackground, backgroundColor: getExpiryDateLabelColor(expiryDate), color: 'white', fontWeight: 'bold' }}>{labelString}</Text>
@@ -341,8 +343,15 @@ export default function ItemListScreen({ route }) {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <StatusBar hidden={false} />
 
+        <SearchBar
+          placeholder="Type Here..."
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          platform={Platform.OS}
+        />
+
         <FlatList
-          data={list}
+          data={filteredList}
           keyExtractor={(item, index) => index.toString()}
           includeseparatorComponent={ItemSeparatorView}
           renderItem={ItemView}
