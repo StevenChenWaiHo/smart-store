@@ -13,6 +13,8 @@ import { Alert } from 'react-native';
 import resetDatabase from './src/data/SQLite/resetDatabase';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { styles } from './src/styles/global/globalStyle';
+import exportDatabase from './src/data/SQLite/exportDatabase';
+import SettingsScreen from './src/screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -106,13 +108,30 @@ export default function App() {
                 <Button
                   type="clear"
                   icon={{ name: 'share', color: 'white' }}
-                  onPress={() => { }}
+                  onPress={exportDatabase}
                 />
               ),
               freezeOnBlur: false,
               tabBarLabel: 'List',
               tabBarIcon: (({ }) => (
                 <Icon name='list' />
+              ))
+            }} />
+          <Tab.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{
+              headerShown: true,
+              headerStyle: {
+                backgroundColor: 'orange',
+              },
+              headerTitleStyle: {
+                color: 'white',
+              },
+              freezeOnBlur: false,
+              tabBarLabel: 'Settings',
+              tabBarIcon: (({ }) => (
+                <Icon name='settings' />
               ))
             }} />
         </Tab.Navigator>
