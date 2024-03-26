@@ -13,7 +13,7 @@ import { Alert } from 'react-native';
 import resetDatabase from './src/data/SQLite/resetDatabase';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { styles } from './src/styles/global/globalStyle';
-import exportDatabase from './src/data/SQLite/exportDatabase';
+import exportDatabase from './src/data/SQLite/exportItemList';
 import SettingsScreen from './src/screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
@@ -79,7 +79,7 @@ export default function App() {
             name="Add Item"
             component={AddItemScreen}
             options={{
-              headerShown: true,
+              headerShown: false,
               headerTitle: 'Scan Barcode To Add Item',
               headerStyle: {
                 backgroundColor: 'orange',
@@ -104,13 +104,6 @@ export default function App() {
               headerTitleStyle: {
                 color: 'white',
               },
-              headerRight: ({}) => (
-                <Button
-                  type="clear"
-                  icon={{ name: 'share', color: 'white' }}
-                  onPress={exportDatabase}
-                />
-              ),
               freezeOnBlur: false,
               tabBarLabel: 'List',
               tabBarIcon: (({ }) => (

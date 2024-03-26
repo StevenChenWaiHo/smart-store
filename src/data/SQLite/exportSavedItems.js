@@ -4,10 +4,10 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 
-export default function exportDatabase() {
+export default function exportSavedItems() {
     const db = openDatabase();
     db.transaction(tx => {
-        tx.executeSql(`SELECT * FROM list`,
+        tx.executeSql(`SELECT * FROM barcodeMap`,
             [],
             async (txObj, result) => {
                 try {
@@ -15,7 +15,7 @@ export default function exportDatabase() {
 
                     // Name the File
                     const directoryUri = FileSystem.cacheDirectory;
-                    const fileUri = directoryUri + `list.csv`;
+                    const fileUri = directoryUri + `saved_items.csv`;
 
                     // Write the file to system
                     FileSystem.writeAsStringAsync(fileUri, CSV)
