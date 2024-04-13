@@ -19,6 +19,7 @@ import Counter from 'react-native-counters';
 import openDatabase from '../../data/SQLite/openDatabase'
 import EditItemForm from '../../components/EditItemForm';
 import dateNumberToString from '../../data/utils/date/dateNumberToString';
+import { schedulePushNotification } from '../../notification/schedulePushNotification';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -118,7 +119,7 @@ export default function AddItemScreen({ route }) {
                     ToastAndroid.show(`Added Item - ${item.itemName}`, ToastAndroid.SHORT);
                     setItemStatus({ editing: false, scanned: false })
                     resetItem();
-                    console.log('Add to List', resultList.rows._array)
+                    console.log('Add to List', item)
                 },
                 (txObj, error) => alert(error))
         })
@@ -470,21 +471,6 @@ export default function AddItemScreen({ route }) {
             Notifications.removeNotificationSubscription(responseListener.current);
         };
     }, []);
-
-    async function schedulePushNotification(item) {
-        const trigger = new Date(item?.date);
-        trigger.setHours(8)
-        trigger.setMinutes(0)
-        trigger.setSeconds(0)
-
-        return await Notifications.scheduleNotificationAsync({
-            content: {
-                title: "Your Item is Expiring 📬",
-                body: `${item?.itemName} is expiring on ${new Date(item?.date).toDateString()}`,
-            },
-            trigger,
-        });
-    }
 
     async function registerForPushNotificationsAsync() {
         let token;

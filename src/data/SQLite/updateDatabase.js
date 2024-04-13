@@ -61,7 +61,6 @@ export default function updateDatabase({ debugMode }) {
                                 })
                             }
                         }
-                        checkAllTableSchema()
                     },
                     (txObj, error) => { debugLog({ debugMode, message: error }) })
             }, debugMode)
@@ -93,8 +92,8 @@ export default function updateDatabase({ debugMode }) {
             }, debugMode)
     }
 
-    debugLog({debugMode, message: 'Current Database'})
-    checkAllTableSchema()
+    // debugLog({debugMode, message: 'Current Database'})
+    // checkAllTableSchema()
 
     transactionHandler(db,
         tx => {
@@ -119,11 +118,8 @@ export default function updateDatabase({ debugMode }) {
                         tx.executeSql("INSERT INTO version (versionNumber) values (?)", [1],
                             (txObj, result) => { },
                             (txObj, error) => { debugLog({ debugMode, message: error }) })
-                        checkAllTableSchema()
                     }
-
                     upgradeDatabaseToLatestVersion()
-                    checkAllTableSchema()
                 },
                 (txObj, error) => { debugLog({ debugMode, message: error }) }
             )
