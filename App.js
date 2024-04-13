@@ -110,7 +110,7 @@ export default function App() {
                 <Icon name='list' />
               ))
             }} />
-          <Tab.Screen
+          {debugMode ? <Tab.Screen
             name="Settings"
             component={SettingsScreen}
             options={{
@@ -126,7 +126,7 @@ export default function App() {
               tabBarIcon: (({ }) => (
                 <Icon name='settings' />
               ))
-            }} />
+            }} /> : <></>}
         </Tab.Navigator>
       </NavigationContainer>
     </ActionSheetProvider>
