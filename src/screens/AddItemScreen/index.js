@@ -19,7 +19,7 @@ import Counter from 'react-native-counters';
 import openDatabase from '../../data/SQLite/openDatabase'
 import EditItemForm from '../../components/EditItemForm';
 import dateNumberToString from '../../data/date/dateNumberToString';
-import { schedulePushNotification } from '../../data/notification/schedulePushNotification';
+import schedulePushNotification from '../../data/notification/schedulePushNotification';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({

@@ -14,8 +14,12 @@ import { Icon } from '@rneui/themed';
 import exportItemList from '../../data/SQLite/exportItemList';
 import exportSavedItems from '../../data/SQLite/exportSavedItems';
 import importItemList from '../../data/SQLite/importItemList';
+import importSavedItems from '../../data/SQLite/importSavedItems';
 import settingsStyles from '../../styles/global/settingsStyle';
 import resetNotifications from '../../data/notification/resetNotifications';
+import getAllNotifications from '../../data/notification/getAllNotifications';
+import getList from '../../data/SQLite/getList';
+import getSavedItems from '../../data/SQLite/getSavedItems';
 
 const SettingTab = ({
   onPress,
@@ -27,7 +31,7 @@ const SettingTab = ({
   return (
     <View style={firstItem ? [settingsStyles.rowWrapper, settingsStyles.rowFirst] : [settingsStyles.rowWrapper]}>
       <TouchableOpacity
-        onPress={async () => { setLoading(true); await onPress() ; setLoading(false)}}
+        onPress={async () => { setLoading(true); await onPress(); setLoading(false) }}
         style={settingsStyles.row}
         disabled={loading}>
         <View
@@ -53,6 +57,26 @@ export default function SettingsScreen({ route }) {
 
         <ScrollView>
           <View style={settingsStyles.section}>
+            <Text style={settingsStyles.sectionTitle}>Items</Text>
+
+            <View style={settingsStyles.sectionBody}>
+              <SettingTab
+                label="Get List"
+                icon={<Icon name='list' type='font-awesome' />}
+                onPress={getList}
+                firstItem={true}
+              />
+
+              <SettingTab
+                label="Get Saved Items"
+                icon={<Icon name='list' type='font-awesome' />}
+                onPress={getSavedItems}
+              />
+
+            </View>
+          </View>
+
+          <View style={settingsStyles.section}>
             <Text style={settingsStyles.sectionTitle}>Notification</Text>
 
 
@@ -62,6 +86,11 @@ export default function SettingsScreen({ route }) {
                 icon={<Icon name='upload' type='font-awesome' />}
                 onPress={resetNotifications}
                 firstItem={true}
+              />
+              <SettingTab
+                label="Get All Scheduled Notification"
+                icon={<Icon name='upload' type='font-awesome' />}
+                onPress={getAllNotifications}
               />
             </View>
           </View>
@@ -80,38 +109,37 @@ export default function SettingsScreen({ route }) {
               <SettingTab
                 label="Import Saved Items"
                 icon={<Icon name='download' type='font-awesome' />}
-                onPress={() => {
-                  // handle onPress
-                }}
+                onPress={importSavedItems}
               />
 
             </View>
-
-            <View style={settingsStyles.section}>
-              <Text style={settingsStyles.sectionTitle}>Export</Text>
-
-              <View style={settingsStyles.sectionBody}>
-                <SettingTab
-                  label="Export Item List"
-                  icon={<Icon name='upload' type='font-awesome' />}
-                  onPress={exportItemList}
-                  firstItem={true}
-                />
-
-                <SettingTab
-                  label="Export Saved Items"
-                  icon={<Icon name='upload' type='font-awesome' />}
-                  onPress={exportSavedItems}
-                />
-
-              </View>
-            </View>
           </View>
 
-          <Text style={settingsStyles.contentFooter}>Made by hohocomsci</Text>
+          <View style={settingsStyles.section}>
+            <Text style={settingsStyles.sectionTitle}>Export</Text>
+
+            <View style={settingsStyles.sectionBody}>
+              <SettingTab
+                label="Export Item List"
+                icon={<Icon name='upload' type='font-awesome' />}
+                onPress={exportItemList}
+                firstItem={true}
+              />
+
+              <SettingTab
+                label="Export Saved Items"
+                icon={<Icon name='upload' type='font-awesome' />}
+                onPress={exportSavedItems}
+              />
+
+            </View>
+          </View>
         </ScrollView>
+
       </View>
-    </SafeAreaView>
+
+      <Text style={settingsStyles.contentFooter}>Made by hohocomsci</Text>
+    </SafeAreaView >
   );
 }
 
