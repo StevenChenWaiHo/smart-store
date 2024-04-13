@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "upgrades": {
     "to_v2": "ALTER TABLE list ADD COLUMN remarks text",
     "to_v3": "ALTER TABLE list ADD COLUMN barcode text",
