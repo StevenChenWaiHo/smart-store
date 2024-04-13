@@ -25,6 +25,11 @@ const updateNotification = (db, item) => {
                         await Notifications.cancelScheduledNotificationAsync(resultList.rows._array[0]['notificationId'])
                     }
 
+                    if (!item?.date) {
+                        // Dont need to reschedule notification
+                        return
+                    }
+
                     // Update notificationId
                     const newNotificationId = await schedulePushNotification(item);
 
@@ -66,9 +71,7 @@ const updateBarcodeMap = (db, item, skipUpdateQuantityInBarcodeMap) => {
 export default function updateItem({ db, item, skipUpdateQuantityInBarcodeMap = false }) {
     console.log('Update List Item', JSON.stringify(item))
     const { id: id, ...data } = item
-    if (item?.date) {
-        updateNotification(db, item);
-    }
+    updateNotification(db, item);
     updateBarcodeMap(db, item, skipUpdateQuantityInBarcodeMap)
     db.transaction(tx => {
         tx.executeSql(`UPDATE list SET ${dataToSQLFields(data)} WHERE id = (?)`, [...dataToSQLValues(data), id],

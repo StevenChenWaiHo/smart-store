@@ -121,14 +121,14 @@ export default function SettingsScreen({ route }) {
             <View style={settingsStyles.sectionBody}>
               <SettingTab
                 label="Export Item List"
-                icon={<Icon name='upload' type='font-awesome' />}
+                icon={<Icon name='share' type='font-awesome' />}
                 onPress={exportItemList}
                 firstItem={true}
               />
 
               <SettingTab
                 label="Export Saved Items"
-                icon={<Icon name='upload' type='font-awesome' />}
+                icon={<Icon name='share' type='font-awesome' />}
                 onPress={exportSavedItems}
               />
 

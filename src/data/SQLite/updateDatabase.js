@@ -49,7 +49,7 @@ export default function updateDatabase({ debugMode }) {
                         if (currentVersion < latestVersion) {
                             debugLog({ debugMode, message: `Database upgrading from version ${currentVersion} to version ${latestVersion}...` })
                             for (let i = currentVersion + 1; i <= latestVersion; i++) {
-                                transactionHandler(tx => {
+                                transactionHandler(db, tx => {
                                     tx.executeSql(dbUpgrade.upgrades[`to_v${i}`],
                                         [],
                                         (txObj, result) => { debugLog({ debugMode, message: `${dbUpgrade.upgrades[`to_v${i}`]}: ${result}` }) },

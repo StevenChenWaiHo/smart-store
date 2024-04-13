@@ -83,7 +83,7 @@ export default function ItemListScreen({ route }) {
       quantity: item?.quantity || 1,
       image: item?.image || '',
       barcode: item?.barcode || '',
-      date: item?.date || new Date(),
+      date: item?.date,
       remarks: item?.remarks || '',
     }
   }

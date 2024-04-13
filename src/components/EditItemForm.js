@@ -19,7 +19,11 @@ export default EditItemForm = ({
 }) => {
 
     const [showAndroidDatePicker, setShowDatePicker] = useState(false);
-    const [haveExpiryDate, setHaveExpiryDate] = useState(true);
+    const [haveExpiryDate, setHaveExpiryDate] = useState(itemInEdit?.date !== null && itemInEdit?.date !== undefined);
+
+    useEffect(() => {
+        setHaveExpiryDate(itemInEdit?.date !== null && itemInEdit?.date !== undefined)
+    }, [itemInEdit?.date])
 
     const onChangeItemName = (text) => {
         setItemInEdit((prev) => ({ ...prev, itemName: text }))
