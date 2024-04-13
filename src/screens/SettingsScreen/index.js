@@ -13,6 +13,7 @@ import {
 import { Icon } from '@rneui/themed';
 import exportItemList from '../../data/SQLite/exportItemList';
 import exportSavedItems from '../../data/SQLite/exportSavedItems';
+import importItemList from '../../data/SQLite/importItemList';
 
 export default function SettingsScreen({ route }) {
 
@@ -28,9 +29,7 @@ export default function SettingsScreen({ route }) {
             <View style={styles.sectionBody}>
               <View style={[styles.rowWrapper, styles.rowFirst]}>
                 <TouchableOpacity
-                  onPress={() => {
-                    // handle onPress
-                  }}
+                  onPress={importItemList}
                   style={styles.row}>
                   <View
                     style={styles.rowIcon}>

@@ -13,7 +13,7 @@ import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import EditItemForm from '../../components/EditItemForm';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import updateItem from "../../data/SQLite/item/update/updateItem";
-import dateNumberToString from "../../data/utils/date/dateNumberToString";
+import dateNumberToString from "../../data/date/dateNumberToString";
 import pickImageFromLibrary from "../../data/image/utils/pickImageFromPhotoLibrary";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import getImageFromCamera from '../../data/image/utils/getImageFromCamera'

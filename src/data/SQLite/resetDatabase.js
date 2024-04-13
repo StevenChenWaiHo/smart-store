@@ -1,7 +1,7 @@
 import openDatabase from "./openDatabase";
 import * as SQLite from 'expo-sqlite';
 import dbUpgrade from './db-upgrade.json'
-import debugLog from '../utils/debug/debugLog'
+import debugLog from '../debug/debugLog'
 
 const schemaToSQL = (schema) => {
     const sqlTables = Object.keys(schema).map(table => {

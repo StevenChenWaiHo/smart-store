@@ -1,6 +1,6 @@
 import * as Notifications from "expo-notifications";
 
-export async function schedulePushNotification(item) {
+export default async function schedulePushNotification(item) {
     const trigger = new Date(item?.date);
     trigger.setHours(8)
     trigger.setMinutes(0)

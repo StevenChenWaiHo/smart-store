@@ -18,8 +18,8 @@ import * as Notifications from 'expo-notifications';
 import Counter from 'react-native-counters';
 import openDatabase from '../../data/SQLite/openDatabase'
 import EditItemForm from '../../components/EditItemForm';
-import dateNumberToString from '../../data/utils/date/dateNumberToString';
-import { schedulePushNotification } from '../../notification/schedulePushNotification';
+import dateNumberToString from '../../data/date/dateNumberToString';
+import { schedulePushNotification } from '../../data/notification/schedulePushNotification';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({

@@ -1,4 +1,6 @@
 import * as Notifications from 'expo-notifications';
+import schedulePushNotification from '../../../notification/schedulePushNotification'
+import debugLog from '../../../debug/debugLog';
 
 const dataToSQLFields = (data) => {
     return Object.keys(data).map((column) => {
@@ -13,37 +15,29 @@ const dataToSQLValues = (data) => {
 }
 
 const updateNotification = (db, item) => {
-    async function schedulePushNotification(item) {
-        const trigger = new Date(item?.date);
-        trigger.setHours(8)
-        trigger.setMinutes(0)
-        trigger.setSeconds(0)
-
-        return await Notifications.scheduleNotificationAsync({
-            content: {
-                title: "Your Item is Expiring 📬",
-                body: `${item?.itemName} is expiring on ${new Date(item?.date).toDateString()}`,
-            },
-            trigger,
-        });
-    }
 
     db.transaction(tx => {
         tx.executeSql('SELECT notificationId FROM list WHERE id = (?)', [item?.id],
             async (txObj, resultList) => {
+                try {
+                    // Delete Current Notification
+                    await Notifications.cancelScheduledNotificationAsync(resultList.rows._array[0]['notificationId'])
 
-                // Delete Current Notification
-                Notifications.cancelScheduledNotificationAsync(resultList.rows._array[0]['notificationId'])
+                    // Update notificationId
+                    const newNotificationId = await schedulePushNotification(item);
 
-                // Update notificationId
-                const newNotificationId = await schedulePushNotification(item);
-                db.transaction(tx => {
-                    tx.executeSql(`UPDATE list SET notificationId = (?) WHERE id = (?)`, [newNotificationId],
-                        (txObj, resultList) => {console.log('Updated notification ID: ', newNotificationId)},
-                        (txObj, error) => console.log(error))
-                })
+                    db.transaction(tx => {
+                        tx.executeSql(`UPDATE list SET notificationId = (?) WHERE id = (?)`, [newNotificationId, item?.id],
+                            (txObj, resultList) => { console.log('Updated notification ID: ', newNotificationId) },
+                            (txObj, error) => debugLog({ message: error }))
+                    })
+
+                } catch (error) {
+                    debugLog({ message: error })
+                }
+
             },
-            (txObj, error) => console.log(error))
+            (txObj, error) => debugLog({ message: error }))
     })
 
 
@@ -63,7 +57,7 @@ const updateBarcodeMap = (db, item, skipUpdateQuantityInBarcodeMap) => {
                 (txObj, error) => console.log(error))
         })
     }
-    
+
 }
 
 // Must provide itemName when updating expiry date

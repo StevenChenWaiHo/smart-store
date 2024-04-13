@@ -3,7 +3,7 @@
 import dbUpgrade from "./db-upgrade.json"
 import * as SQLite from 'expo-sqlite'
 import openDatabase from "./openDatabase";
-import debugLog from "../utils/debug/debugLog";
+import debugLog from "../debug/debugLog";
 import transactionHandler from "./utils/transactionHandler";
 
 const schemaToSQL = (schema) => {

@@ -1,4 +1,4 @@
-import debugLog from "../utils/debug/debugLog"
+import debugLog from "../debug/debugLog"
 
 export default function dateDifferenceInDays(oldDate, newDate) {
     const msToDay = (1000 * 60 * 60 * 24)

@@ -4,7 +4,7 @@ import Counter from "react-native-counters"
 import { TouchableOpacity } from "react-native"
 import { styles } from "../styles/global/globalStyle"
 import { useEffect, useState, useCallback } from "react"
-import dateNumberToString from "../data/utils/date/dateNumberToString"
+import dateNumberToString from "../data/date/dateNumberToString"
 
 
 
