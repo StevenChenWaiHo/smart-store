@@ -5,6 +5,7 @@ import { TouchableOpacity } from "react-native"
 import { styles } from "../styles/global/globalStyle"
 import { useEffect, useState, useCallback } from "react"
 import dateNumberToString from "../data/date/dateNumberToString"
+import { CheckBox } from "@rneui/themed";
 
 
 
@@ -18,7 +19,7 @@ export default EditItemForm = ({
 }) => {
 
     const [showAndroidDatePicker, setShowDatePicker] = useState(false);
-
+    const [haveExpiryDate, setHaveExpiryDate] = useState(true);
 
     const onChangeItemName = (text) => {
         setItemInEdit((prev) => ({ ...prev, itemName: text }))
@@ -32,8 +33,14 @@ export default EditItemForm = ({
         setItemInEdit((prev) => ({ ...prev, remarks: text }))
     }
 
+    const onChangeNotifyMe = () => {
+        const newHaveExpiryDate = !haveExpiryDate
+        setHaveExpiryDate(newHaveExpiryDate)
+        setItemInEdit((prev) => ({ ...prev, date: newHaveExpiryDate ? Math.floor(new Date().getTime()) : null }))
+    }
+
     const RenderCounter = () => {
-        return <Counter start={itemInEdit?.quantity} onChange={onChangeQuantity} max={100} />
+        return <Counter start={itemInEdit?.quantity} onChange={onChangeQuantity} buttonStyle={{ borderWidth: 3}} max={100} />
     }
 
     const toggleDatePicker = () => {
@@ -60,7 +67,7 @@ export default EditItemForm = ({
                     <TextInput
                         placeholder="Enter Date here"
                         style={styles.input}
-                        value={dateNumberToString(itemInEdit?.date)}
+                        value={dateNumberToString(itemInEdit?.date ? itemInEdit?.date : Math.floor(new Date().getTime()))}
                         editable={false} />
                 </Pressable>
             </>) :
@@ -107,20 +114,46 @@ export default EditItemForm = ({
 
             {/* Inputs */}
             <View style={{ ...styles.topLeftContainer, flex: 2 }}>
-                {/* Date Input*/}
-                <Text style={styles.inputLabel}>Expiry Date:</Text>
-                <RenderDatePicker />
-                {(Platform.OS === 'android' && showAndroidDatePicker) &&
-                    <DateTimePicker
-                        minimumDate={new Date()}
-                        mode='date'
-                        display='calendar'
-                        value={new Date(itemInEdit?.date)}
-                        onChange={onChangeDate} />}
-
                 {/* Quantity Input*/}
                 <Text style={styles.inputLabel} >Quantity:</Text>
-                <RenderCounter />
+                <RenderCounter
+                    style={{ alignSelf: 'center' }} />
+
+                <Text style={styles.inputLabel} >Expiry Date:</Text>
+
+                <View style={{ flexDirection: "row" }}>
+                    <View style={{ flex: 1, alignItems: 'left', justifyContent: 'center', marginLeft: -15, marginTop: -5}}>
+                        {/* Expiry Date Checkbox Input*/}
+                        <CheckBox
+                            containerStyle={{ margin: 5, padding: 0 }}
+                            wrapperStyle={{ margin: 0, padding: 0 }}
+                            textStyle={{ margin: 0, padding: 0 }}
+                            size={45}
+                            checked={haveExpiryDate}
+                            onPress={onChangeNotifyMe}
+                            iconType="material-community"
+                            checkedIcon="checkbox-marked"
+                            uncheckedIcon="checkbox-blank-outline"
+                            checkedColor="#27AAE1"
+                            uncheckedColor="#27AAE1" />
+                    </View>
+
+                    {haveExpiryDate ? <>
+                        {/* Date Input*/}
+                        <View style={{ flex: 4 }}>
+                            <RenderDatePicker />
+                            {(Platform.OS === 'android' && showAndroidDatePicker) &&
+                                <DateTimePicker
+                                    minimumDate={new Date()}
+                                    mode='date'
+                                    display='calendar'
+                                    value={new Date(itemInEdit?.date)}
+                                    onChange={onChangeDate} />}
+                        </View>
+
+                    </> : <></>}
+
+                </View>
 
                 {/* Remarks Input*/}
                 <Text style={styles.inputLabel} >Remarks:</Text>

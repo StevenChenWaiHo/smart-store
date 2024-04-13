@@ -70,7 +70,7 @@ export default function ItemListScreen({ route }) {
 
   const updateListFromDatabase = () => {
     db.transaction(tx => {
-      tx.executeSql('SELECT * FROM list ORDER BY date', null,
+      tx.executeSql('SELECT * FROM list ORDER BY CASE WHEN date IS NULL THEN 1 ELSE 0 END, date', null,
         (txObj, resultList) => updateList(resultList.rows._array),
         (txObj, error) => console.log(error))
     })
@@ -191,14 +191,22 @@ export default function ItemListScreen({ route }) {
   }
 
   const RenderExpiryDateLabel = ({ expiryDate }) => {
-    const difference = dateDifferenceInDays(expiryDate, new Date())
+    if (!expiryDate) {
+      return (
+        <Text style={{ ...styles.labelWithBackground, backgroundColor: 'lightgrey', color: 'white', fontWeight: 'bold' }}>No Expiry Date</Text>
+      )
+    }
+
+    const expiryDateObject = new Date(expiryDate)
+
+    const difference = dateDifferenceInDays(expiryDateObject, new Date())
     const labelString =
       difference < 0 ? 'Expired' :
         difference === 0 ? 'Expiring Today' :
           difference === 1 ? `Expiring Tomorrow` : `Expiring in ${difference} days`
 
     return (
-      <Text style={{ ...styles.labelWithBackground, backgroundColor: getExpiryDateLabelColor(expiryDate), color: 'white', fontWeight: 'bold' }}>{labelString}</Text>
+      <Text style={{ ...styles.labelWithBackground, backgroundColor: getExpiryDateLabelColor(expiryDateObject), color: 'white', fontWeight: 'bold' }}>{labelString}</Text>
     )
   }
 
@@ -218,13 +226,13 @@ export default function ItemListScreen({ route }) {
                 source={{ uri: item?.dates?.[0]?.image }}
                 style={styles.itemListImage} />
               <ListItem.Content style={styles.listItemContent}>
-                <RenderExpiryDateLabel expiryDate={new Date(item?.dates?.[0].date)} />
+                <RenderExpiryDateLabel expiryDate={item?.dates?.[0].date} />
                 <ListItem.Title>
                   <Text style={styles.bottomSheetBoldText}>{item?.itemName}</Text>
                 </ListItem.Title>
                 <ListItem.Subtitle>
                   <View>
-                    <Text>{new Date(item?.dates?.[0].date).toDateString()}</Text>
+                    {item?.dates?.[0].date ? <Text >{dateNumberToString(item?.dates?.[0].date)}</Text> : <></>}
                     {/* Sum of quantity of all items */}
                     <Text>Quantity : {item?.dates?.reduce((accumulator, currentValue) => accumulator + currentValue.quantity, 0)}</Text>
                   </View>
@@ -264,10 +272,11 @@ export default function ItemListScreen({ route }) {
                     source={{ uri: date.image }}
                     style={styles.itemListImage} />
                   <ListItem.Content style={styles.listItemContent}>
-                    <RenderExpiryDateLabel expiryDate={new Date(date.date)} />
-                    <ListItem.Title>
-                      <Text style={styles.bottomSheetText}>{dateNumberToString(date.date)}</Text>
-                    </ListItem.Title>
+                    <RenderExpiryDateLabel expiryDate={date.date} />
+                    {date.date ?
+                      <ListItem.Title>
+                        <Text style={styles.bottomSheetText}>{dateNumberToString(date.date)}</Text>
+                      </ListItem.Title> : <></>}
                     <ListItem.Subtitle>
                       Quantity: {date.quantity}
                     </ListItem.Subtitle>
@@ -305,13 +314,13 @@ export default function ItemListScreen({ route }) {
               source={{ uri: item?.dates?.[0].image }}
               style={styles.itemListImage} />
             <ListItem.Content style={styles.listItemContent}>
-              <RenderExpiryDateLabel expiryDate={new Date(item?.dates?.[0].date)} />
+              <RenderExpiryDateLabel expiryDate={item?.dates?.[0].date} />
               <ListItem.Title>
                 <Text style={styles.bottomSheetBoldText}>{item?.itemName}</Text>
               </ListItem.Title>
               <ListItem.Subtitle>
                 <View>
-                  <Text>{dateNumberToString(item?.dates?.[0].date)}</Text>
+                  {item?.dates?.[0].date ? <Text>{dateNumberToString(item?.dates?.[0].date)}</Text> : <></>}
                   <Text>Quantity : {item?.dates?.[0].quantity}</Text>
                 </View>
 

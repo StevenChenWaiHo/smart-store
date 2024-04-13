@@ -83,13 +83,13 @@ export default function SettingsScreen({ route }) {
             <View style={settingsStyles.sectionBody}>
               <SettingTab
                 label="Reset Notification"
-                icon={<Icon name='upload' type='font-awesome' />}
+                icon={<Icon name='rotate-right' type='font-awesome' />}
                 onPress={resetNotifications}
                 firstItem={true}
               />
               <SettingTab
                 label="Get All Scheduled Notification"
-                icon={<Icon name='upload' type='font-awesome' />}
+                icon={<Icon name='list' type='font-awesome' />}
                 onPress={getAllNotifications}
               />
             </View>

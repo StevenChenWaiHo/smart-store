@@ -20,8 +20,10 @@ const updateNotification = (db, item) => {
         tx.executeSql('SELECT notificationId FROM list WHERE id = (?)', [item?.id],
             async (txObj, resultList) => {
                 try {
-                    // Delete Current Notification
-                    await Notifications.cancelScheduledNotificationAsync(resultList.rows._array[0]['notificationId'])
+                    if (resultList.rows._array[0]['notificationId']) {
+                        // Delete Current Notification if previous notificationId is present
+                        await Notifications.cancelScheduledNotificationAsync(resultList.rows._array[0]['notificationId'])
+                    }
 
                     // Update notificationId
                     const newNotificationId = await schedulePushNotification(item);
@@ -64,7 +66,9 @@ const updateBarcodeMap = (db, item, skipUpdateQuantityInBarcodeMap) => {
 export default function updateItem({ db, item, skipUpdateQuantityInBarcodeMap = false }) {
     console.log('Update List Item', JSON.stringify(item))
     const { id: id, ...data } = item
-    updateNotification(db, item);
+    if (item?.date) {
+        updateNotification(db, item);
+    }
     updateBarcodeMap(db, item, skipUpdateQuantityInBarcodeMap)
     db.transaction(tx => {
         tx.executeSql(`UPDATE list SET ${dataToSQLFields(data)} WHERE id = (?)`, [...dataToSQLValues(data), id],

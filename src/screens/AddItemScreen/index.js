@@ -112,7 +112,12 @@ export default function AddItemScreen({ route }) {
             alert('Quantity cannot be empty or less than 0')
             return;
         }
-        const notificationId = await schedulePushNotification(item)
+
+        var notificationId = null
+        if (item?.date) {
+            notificationId = await schedulePushNotification(item)
+        }
+
         db.transaction(tx => {
             tx.executeSql('INSERT INTO list (itemName, date, quantity, image, notificationId, barcode, remarks) values (?, ?, ?, ?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image, notificationId, item.barcode, item.remarks],
                 (txObj, resultList) => {
@@ -309,13 +314,13 @@ export default function AddItemScreen({ route }) {
             setTakingPhoto(false);
             return
         }
-        
+
         // Item Confirmed when swipe up after scanned
         if (!itemStatus.editing && itemStatus.scanned && toPos === 1) {
             setItemStatus({ editing: true, scanned: true })
             return
         }
-        
+
         // Discard scanned item after bottom sheet is closed
         if (!takingPhoto && !itemStatus.editing && itemStatus.scanned && toPos === -1) {
             setItemStatus({ editing: false, scanned: false })
