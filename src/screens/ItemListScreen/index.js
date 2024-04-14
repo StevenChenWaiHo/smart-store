@@ -39,7 +39,7 @@ export default function ItemListScreen({ route }) {
   const [itemInEdit, setItemInEdit] = useState({})
 
   const [searchQuery, setSearchQuery] = useState("")
-  const filteredList = list.filter((item) => item?.itemName.includes(searchQuery))
+  const filteredList = list.filter((item) => item?.itemName.toLowerCase().includes(searchQuery.toLowerCase()))
 
   const updateList = (databaseList) => {
     setRefreshing(true)
