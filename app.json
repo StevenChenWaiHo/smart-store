@@ -2,7 +2,7 @@
   "expo": {
     "name": "FreshTrack",
     "slug": "smart-store",
-    "version": "1.3.2",
+    "version": "1.3.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -18,7 +18,7 @@
       "supportsTablet": true
     },
     "android": {
-      "versionCode": 32,
+      "versionCode": 33,
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",

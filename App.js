@@ -15,6 +15,9 @@ import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { styles } from './src/styles/global/globalStyle';
 import exportDatabase from './src/data/SQLite/exportItemList';
 import SettingsScreen from './src/screens/SettingsScreen';
+import VersionCheck from 'react-native-version-check';
+import { Linking } from 'react-native';
+import * as Updates from 'expo-updates';
 
 const Tab = createBottomTabNavigator();
 
@@ -33,10 +36,33 @@ export default function App() {
     setFirstLoad(true)
   }
 
+  const onFetchUpdateAsync = async () => {
+    try {
+      const update = await Updates.checkForUpdateAsync();
+
+      if (update.isAvailable) {
+        alert(`Updating to the newest version. Please wait.`);
+        await Updates.fetchUpdateAsync();
+        await Updates.reloadAsync();
+        alert(`Finished Update`);
+      }
+    } catch (error) {
+      alert(`Error fetching latest Expo update: ${error}`);
+    }
+  }
+
+  const firstLoadFunction = async () => {
+    if (!__DEV__) {
+      await onFetchUpdateAsync()
+    }
+
+    updateDatabase({ debugMode: debugMode })
+    setFirstLoad(false)
+  }
+
   useEffect(() => {
     if (firstLoad) {
-      updateDatabase({ debugMode: debugMode })
-      setFirstLoad(false)
+      firstLoadFunction()
     }
   }, [firstLoad, debugMode])
 
