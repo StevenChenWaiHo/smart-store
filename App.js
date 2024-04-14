@@ -18,6 +18,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import VersionCheck from 'react-native-version-check';
 import { Linking } from 'react-native';
 import * as Updates from 'expo-updates';
+import { ToastAndroid } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -36,15 +37,23 @@ export default function App() {
     setFirstLoad(true)
   }
 
+  const updateApp = async () => {
+    await Updates.fetchUpdateAsync();
+    await Updates.reloadAsync();
+    ToastAndroid.show('Updated to the newest version');
+  }
+
   const onFetchUpdateAsync = async () => {
     try {
       const update = await Updates.checkForUpdateAsync();
 
       if (update.isAvailable) {
-        alert(`Updating to the newest version. Please wait.`);
-        await Updates.fetchUpdateAsync();
-        await Updates.reloadAsync();
-        alert(`Finished Update`);
+        Alert.alert(
+          "New Version Availiable",
+          `Please update your app to the newest version`,
+          [{ text: "Update", onPress: () => updateApp() }],
+          { cancelable: false }
+        );
       }
     } catch (error) {
       alert(`Error fetching latest Expo update: ${error}`);

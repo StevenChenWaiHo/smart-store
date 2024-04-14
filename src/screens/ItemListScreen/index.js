@@ -19,6 +19,7 @@ import { useActionSheet } from "@expo/react-native-action-sheet";
 import getImageFromCamera from '../../data/image/utils/getImageFromCamera'
 import { Camera } from "expo-camera";
 import dateDifferenceInDays from "../../data/date/dateDifferenceInDays";
+import ItemListView from "../../components/ItemListView";
 
 export default function ItemListScreen({ route }) {
   const db = openDatabase();
@@ -130,7 +131,7 @@ export default function ItemListScreen({ route }) {
     await getImageFromCameraOrPhotoLibrary()
   }
 
-  const handleItemListLeftButtonPress = (i, j) => {
+  const onEditButtonPress = (i, j) => {
     editItem(i, j);
   }
 
@@ -253,7 +254,7 @@ export default function ItemListScreen({ route }) {
                 leftContent={(reset) => (
                   <Button
                     title="Edit"
-                    onPress={() => { handleItemListLeftButtonPress(i, j); reset() }}
+                    onPress={() => { onEditButtonPress(i, j); reset() }}
                     icon={{ name: 'edit', color: 'white' }}
                     buttonStyle={{ minHeight: '100%' }}
                   />
@@ -295,7 +296,7 @@ export default function ItemListScreen({ route }) {
           leftContent={(reset) => (
             <Button
               title="Edit"
-              onPress={() => { handleItemListLeftButtonPress(i, 0); reset() }}
+              onPress={() => { onEditButtonPress(i, 0); reset() }}
               icon={{ name: 'edit', color: 'white' }}
               buttonStyle={{ minHeight: '100%' }}
             />
@@ -359,7 +360,7 @@ export default function ItemListScreen({ route }) {
           platform={Platform.OS}
         />
 
-        <FlatList
+        {/* <FlatList
           data={filteredList}
           keyExtractor={(item, index) => index.toString()}
           includeseparatorComponent={ItemSeparatorView}
@@ -369,6 +370,14 @@ export default function ItemListScreen({ route }) {
               refreshing={refreshing}
               onRefresh={onRefresh}
             />}
+        /> */}
+
+        <ItemListView
+          data={filteredList}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          onLeftButtonPress={onEditButtonPress}
+          onRightButtonPress={deleteItem}
         />
 
         <BottomSheet
