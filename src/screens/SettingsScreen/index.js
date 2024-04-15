@@ -20,6 +20,7 @@ import resetNotifications from '../../data/notification/resetNotifications';
 import getAllNotifications from '../../data/notification/getAllNotifications';
 import getList from '../../data/SQLite/getList';
 import getSavedItems from '../../data/SQLite/getSavedItems';
+import onFetchUpdateAsync from '../../data/updates/onFetchUpdateAsync';
 
 const SettingTab = ({
   onPress,
@@ -130,6 +131,20 @@ export default function SettingsScreen({ route }) {
                 label="Export Saved Items"
                 icon={<Icon name='share' type='font-awesome' />}
                 onPress={exportSavedItems}
+              />
+
+            </View>
+          </View>
+
+          <View style={settingsStyles.section}>
+            <Text style={settingsStyles.sectionTitle}>Export</Text>
+
+            <View style={settingsStyles.sectionBody}>
+              <SettingTab
+                label="Update"
+                icon={<Icon name='download' type='font-awesome' />}
+                onPress={onFetchUpdateAsync}
+                firstItem={true}
               />
 
             </View>

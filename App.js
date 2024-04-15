@@ -37,33 +37,10 @@ export default function App() {
     setFirstLoad(true)
   }
 
-  const updateApp = async () => {
-    await Updates.fetchUpdateAsync();
-    await Updates.reloadAsync();
-    ToastAndroid.show('Updated to the newest version');
-  }
-
-  const onFetchUpdateAsync = async () => {
-    try {
-      const update = await Updates.checkForUpdateAsync();
-
-      if (update.isAvailable) {
-        Alert.alert(
-          "New Version Availiable",
-          `Please update your app to the newest version`,
-          [{ text: "Update", onPress: () => updateApp() }],
-          { cancelable: false }
-        );
-      }
-    } catch (error) {
-      alert(`Error fetching latest Expo update: ${error}`);
-    }
-  }
-
   const firstLoadFunction = async () => {
-    if (!__DEV__) {
-      await onFetchUpdateAsync()
-    }
+    // if (!__DEV__) {
+    //   await onFetchUpdateAsync()
+    // }
 
     updateDatabase({ debugMode: debugMode })
     setFirstLoad(false)
