@@ -136,7 +136,7 @@ export default function SettingsScreen({ route }) {
             </View>
           </View>
 
-          <View style={settingsStyles.section}>
+          {/* <View style={settingsStyles.section}>
             <Text style={settingsStyles.sectionTitle}>Export</Text>
 
             <View style={settingsStyles.sectionBody}>
@@ -148,7 +148,7 @@ export default function SettingsScreen({ route }) {
               />
 
             </View>
-          </View>
+          </View> */}
         </ScrollView>
 
       </View>
