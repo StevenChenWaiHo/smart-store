@@ -1,7 +1,8 @@
 import * as Updates from 'expo-updates'
 import { Alert } from 'react-native';
+import { ToastAndroid } from 'react-native';
 
-export default onFetchUpdateAsync = async () => {
+export default async function onFetchUpdateAsync() {
   
     const updateApp = async () => {
       await Updates.fetchUpdateAsync();
