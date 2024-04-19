@@ -1,9 +1,40 @@
 import dateNumberToString from "../data/date/dateNumberToString";
 import { styles } from "../styles/global/globalStyle";
 import { useState } from "react";
+import { Header, ListItem, Icon, Button, SearchBar } from '@rneui/themed';
+import { Text, Image, ActivityIndicator, FlatList, RefreshControl, View, TouchableOpacity, Platform } from "react-native";
+import dateDifferenceInDays from "../data/date/dateDifferenceInDays";
+
+const getExpiryDateLabelColor = (expiryDate) => {
+  const difference = dateDifferenceInDays(expiryDate, new Date())
+  return (
+    difference < 0 ? 'black' :
+      difference === 0 ? 'red' :
+        difference <= 5 ? `orange` : 'green')
+}
+
+const RenderExpiryDateLabel = ({ expiryDate }) => {
+  if (!expiryDate) {
+    return (
+      <Text style={{ ...styles.labelWithBackground, backgroundColor: 'lightgrey', color: 'white', fontWeight: 'bold' }}>No Expiry Date</Text>
+    )
+  }
+
+  const expiryDateObject = new Date(expiryDate)
+
+  const difference = dateDifferenceInDays(expiryDateObject, new Date())
+  const labelString =
+    difference < 0 ? 'Expired' :
+      difference === 0 ? 'Expiring Today' :
+        difference === 1 ? `Expiring Tomorrow` : `Expiring in ${difference} days`
+
+  return (
+    <Text style={{ ...styles.labelWithBackground, backgroundColor: getExpiryDateLabelColor(expiryDateObject), color: 'white', fontWeight: 'bold' }}>{labelString}</Text>
+  )
+}
 
 export default function ItemListView({
-  list,
+  data,
   refreshing,
   onRefresh,
   onLeftButtonPress,
@@ -148,9 +179,9 @@ export default function ItemListView({
 
   return (
     <FlatList
-      data={list}
+      data={data}
       keyExtractor={(item, index) => index.toString()}
-      includeseparatorComponent={ItemSeparatorView}
+      ItemSeparatorComponent={ItemSeparatorView}
       renderItem={ItemView}
       refreshControl={
         <RefreshControl
