@@ -20,7 +20,6 @@ import resetNotifications from '../../data/notification/resetNotifications';
 import getAllNotifications from '../../data/notification/getAllNotifications';
 import getList from '../../data/SQLite/getList';
 import getSavedItems from '../../data/SQLite/getSavedItems';
-import onFetchUpdateAsync from '../../data/updates/onFetchUpdateAsync';
 
 const SettingTab = ({
   onPress,
