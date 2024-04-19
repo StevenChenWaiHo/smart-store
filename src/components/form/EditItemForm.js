@@ -2,9 +2,9 @@ import { View, Image, TextInput, Button, Text, Pressable } from "react-native"
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Counter from "react-native-counters"
 import { TouchableOpacity } from "react-native"
-import { styles } from "../styles/global/globalStyle"
+import { styles } from "../../styles/global/globalStyle"
 import { useEffect, useState, useCallback } from "react"
-import dateNumberToString from "../data/date/dateNumberToString"
+import dateNumberToString from "../../data/date/dateNumberToString"
 import { CheckBox } from "@rneui/themed";
 
 

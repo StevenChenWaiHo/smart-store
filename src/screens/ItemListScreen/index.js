@@ -10,7 +10,7 @@ import { useIsFocused } from "@react-navigation/native";
 import { cancelScheduledNotificationAsync, dismissAllNotificationsAsync } from "expo-notifications";
 import openDatabase from "../../data/SQLite/openDatabase";
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import EditItemForm from '../../components/EditItemForm';
+import EditItemForm from '../../components/form/EditItemForm';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import updateItem from "../../data/SQLite/item/update/updateItem";
 import dateNumberToString from "../../data/date/dateNumberToString";
@@ -19,7 +19,7 @@ import { useActionSheet } from "@expo/react-native-action-sheet";
 import getImageFromCamera from '../../data/image/utils/getImageFromCamera'
 import { Camera } from "expo-camera";
 import dateDifferenceInDays from "../../data/date/dateDifferenceInDays";
-import ItemListView from "../../components/ItemListView";
+import ItemListView from "../../components/listView/ItemListView";
 
 export default function ItemListScreen({ route }) {
   const db = openDatabase();

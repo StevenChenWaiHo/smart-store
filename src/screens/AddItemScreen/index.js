@@ -17,7 +17,7 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Counter from 'react-native-counters';
 import openDatabase from '../../data/SQLite/openDatabase'
-import EditItemForm from '../../components/EditItemForm';
+import EditItemForm from '../../components/form/EditItemForm';
 import dateNumberToString from '../../data/date/dateNumberToString';
 import schedulePushNotification from '../../data/notification/schedulePushNotification';
 
