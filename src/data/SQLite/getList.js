@@ -11,5 +11,4 @@ export default async function getList() {
         const result = await tx.executeSqlAsync(`SELECT * FROM list`, [])
         console.log(debugLog({message: JSON.stringify(result.rows)}))
     })
-    
 }

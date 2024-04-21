@@ -103,6 +103,7 @@ export default function AddItemScreen({ route }) {
     }
 
     const addItemToList = async (event) => {
+        console.log(item)
         if (item.itemName === '') {
             alert('Item Name cannot be empty')
             return;
@@ -330,7 +331,7 @@ export default function AddItemScreen({ route }) {
     }
 
     const RenderCounter = () => {
-        return <Counter start={item?.quantity} onChange={onChangeQuantity} max={100} />
+        return <Counter start={item?.quantity} onChange={onChangeQuantity} buttonStyle={{ borderWidth: 3 }} max={100} />
     }
 
     const RenderBottomSheetWhenScanned =
@@ -510,7 +511,7 @@ export default function AddItemScreen({ route }) {
     }
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
+        <>
 
             <StatusBar hidden={false} />
 
@@ -536,8 +537,8 @@ export default function AddItemScreen({ route }) {
                     snapPoints={snapPoints}
                     enablePanDownToClose={!itemStatus.editing}
                     onChange={handleBottomSheetChanged}
-                    animationConfigs={animationConfigs}>
-                    <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContainer}>
+                    animationConfigs={animationConfigs}
+                    contentContainerStyle={styles.bottomSheetContainer}>
                         {itemStatus.editing ? (
                             <EditItemForm
                                 itemInEdit={item}
@@ -549,11 +550,10 @@ export default function AddItemScreen({ route }) {
                         ) :
                             itemStatus.scanned ? (RenderBottomSheetWhenScanned)
                                 : <><RenderEmptySheet /></>}
-                    </BottomSheetScrollView>
                 </BottomSheet>
 
             </View>
-        </GestureHandlerRootView>
+        </>
     );
 }
 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AddItemScreen from './src/screens/AddItemScreen';
-import ItemListScreen from './src/screens/ItemListScreen';
+import TimedItemListScreen from './src/screens/TimedItemListScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import { Button, Icon } from '@rneui/themed';
 import updateDatabase from './src/data/SQLite/updateDatabase';
@@ -17,8 +17,9 @@ import exportDatabase from './src/data/SQLite/exportItemList';
 import SettingsScreen from './src/screens/SettingsScreen';
 import VersionCheck from 'react-native-version-check';
 import { Linking } from 'react-native';
-import * as Updates from 'expo-updates';
 import { ToastAndroid } from 'react-native';
+import StorageScreen from './src/screens/StorageScreen';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const Tab = createBottomTabNavigator();
 
@@ -38,9 +39,6 @@ export default function App() {
   }
 
   const firstLoadFunction = async () => {
-    // if (!__DEV__) {
-    //   await onFetchUpdateAsync()
-    // }
 
     updateDatabase({ debugMode: debugMode })
     setFirstLoad(false)
@@ -83,65 +81,90 @@ export default function App() {
   }, [debugMode]);
 
   return !firstLoad && (
-    <ActionSheetProvider>
-      <NavigationContainer>
-        <Tab.Navigator
-          shifting={true}>
-          <Tab.Screen
-            name="Add Item"
-            component={AddItemScreen}
-            options={{
-              headerShown: false,
-              headerTitle: 'Scan Barcode To Add Item',
-              headerStyle: {
-                backgroundColor: 'orange',
-              },
-              headerTitleStyle: {
-                color: 'white',
-              },
-              freezeOnBlur: false,
-              tabBarLabel: 'Add Item',
-              tabBarIcon: (({ }) => (
-                <Icon name='add-shopping-cart' />
-              ))
-            }} />
-          <Tab.Screen
-            name="List"
-            component={ItemListScreen}
-            options={{
-              headerShown: true,
-              headerStyle: {
-                backgroundColor: 'orange',
-              },
-              headerTitleStyle: {
-                color: 'white',
-              },
-              freezeOnBlur: false,
-              tabBarLabel: 'List',
-              tabBarIcon: (({ }) => (
-                <Icon name='list' />
-              ))
-            }} />
-          {debugMode ? <Tab.Screen
-            name="Settings"
-            component={SettingsScreen}
-            options={{
-              headerShown: true,
-              headerStyle: {
-                backgroundColor: 'orange',
-              },
-              headerTitleStyle: {
-                color: 'white',
-              },
-              freezeOnBlur: false,
-              tabBarLabel: 'Settings',
-              tabBarIcon: (({ }) => (
-                <Icon name='settings' />
-              ))
-            }} /> : <></>}
-        </Tab.Navigator>
-      </NavigationContainer>
-    </ActionSheetProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+
+      <ActionSheetProvider>
+        <NavigationContainer>
+          <Tab.Navigator
+            shifting={true}>
+            <Tab.Screen
+              name="Add Item"
+              component={AddItemScreen}
+              options={{
+                headerShown: false,
+                headerTitle: 'Scan Barcode To Add Item',
+                headerStyle: {
+                  backgroundColor: 'orange',
+                },
+                headerTitleStyle: {
+                  color: 'white',
+                },
+                freezeOnBlur: false,
+                tabBarLabel: 'Add Item',
+                tabBarIcon: (({ }) => (
+                  <Icon
+                    name='barcode-scan'
+                    type='material-community' />
+                ))
+              }} />
+            <Tab.Screen
+              name="Expired Soon"
+              component={TimedItemListScreen}
+              options={{
+                headerShown: true,
+                headerStyle: {
+                  backgroundColor: 'orange',
+                },
+                headerTitleStyle: {
+                  color: 'white',
+                },
+                freezeOnBlur: false,
+                tabBarLabel: 'Expired Soon',
+                tabBarIcon: (({ }) => (
+                  <Icon name='history' />
+                ))
+              }} />
+            <Tab.Screen
+              name="Storage"
+              component={StorageScreen}
+              options={{
+                headerShown: true,
+                headerStyle: {
+                  backgroundColor: 'orange',
+                },
+                headerTitleStyle: {
+                  color: 'white',
+                },
+                freezeOnBlur: false,
+                tabBarLabel: 'Storage',
+                tabBarIcon: (({ }) => (
+                  <Icon
+                    name='view-grid-outline'
+                    type='material-community' />
+
+                ))
+              }} />
+            {debugMode ? <Tab.Screen
+              name="Settings"
+              component={SettingsScreen}
+              options={{
+                headerShown: true,
+                headerStyle: {
+                  backgroundColor: 'orange',
+                },
+                headerTitleStyle: {
+                  color: 'white',
+                },
+                freezeOnBlur: false,
+                tabBarLabel: 'Settings',
+                tabBarIcon: (({ }) => (
+                  <Icon name='settings' />
+                ))
+              }} /> : <></>}
+          </Tab.Navigator>
+        </NavigationContainer>
+      </ActionSheetProvider>
+    </GestureHandlerRootView>
 
 
   );

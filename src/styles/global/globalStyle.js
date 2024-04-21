@@ -142,6 +142,9 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     justifyContent: 'center',
     alignItems: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10
   },
   fullExpandedBottomSheetImageContainer: {
     width: '100%',
@@ -175,14 +178,19 @@ export const styles = StyleSheet.create({
   input: {
     width: '100%',
     padding: 10,
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#f7f7f7',
+    color: 'black',
+    borderColor: '#f7f7f7',
+    borderRadius: 10,
   },
   mutilineInput: {
     width: '100%',
     padding: 10,
     textAlignVertical: 'top',
-    backgroundColor: '#f2f2f2',
-    height: '50%'
+    backgroundColor: '#f7f7f7',
+    height: '50%',
+    borderColor: '#f7f7f7',
+    borderRadius: 10,
   },
   buttonContainer: {
     marginLeft: 10,
