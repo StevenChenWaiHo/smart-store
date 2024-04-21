@@ -127,9 +127,9 @@ export const styles = StyleSheet.create({
   bottomSheetImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'stretch',
+    resizeMode: 'contain',
     alignItems: 'center',
-    borderRadius: 15
+    borderRadius: 10
   },
   imageOverlayTextContainer: {
     position: 'absolute',
