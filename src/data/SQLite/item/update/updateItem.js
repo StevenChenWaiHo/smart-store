@@ -64,7 +64,6 @@ const updateBarcodeMap = (db, item, skipUpdateQuantityInBarcodeMap) => {
                 (txObj, error) => console.log(error))
         })
     }
-
 }
 
 // Must provide itemName when updating expiry date
@@ -76,6 +75,6 @@ export default function updateItem({ db, item, skipUpdateQuantityInBarcodeMap = 
     db.transaction(tx => {
         tx.executeSql(`UPDATE list SET ${dataToSQLFields(data)} WHERE id = (?)`, [...dataToSQLValues(data), id],
             (txObj, resultList) => { },
-            (txObj, error) => console.log(error))
+            (txObj, error) => debugLog({message: error}))
     })
 }

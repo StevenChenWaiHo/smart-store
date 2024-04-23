@@ -139,32 +139,21 @@ export default function ItemListScreen({
   }
 
   const editItem = (i, j) => {
-    const tempItem = list[i].dates[j]
+    const tempItem = filteredList[i].dates[j]
     db.transaction(tx => {
       tx.executeSql('SELECT * FROM list WHERE id = (?)', [tempItem.id],
         (txObj, resultList) => {
           bottomSheetRef.current.expand()
-          console.log(resultList.rows._array[0])
           setItemInEdit(sqlDataToState({ ...resultList.rows._array[0] }))
         },
         (txObj, error) => console.log(error))
     })
   }
 
-  const handleSaveItem = () => {
-    updateItem({ db, item: itemInEdit, skipUpdateQuantityInBarcodeMap: true })
+  const handleSaveItem = (item) => {
+    console.log("Save ", item)
+    updateItem({ db, item: item, skipUpdateQuantityInBarcodeMap: true })
     bottomSheetRef.current.close()
-    updateListFromDatabase()
-  }
-
-
-  const useOneItem = (i, j) => {
-    const tempItem = list[i].dates[j]
-    const newQuantity = Math.max(tempItem.quantity - 1, 0)
-    tempItem.quantity = newQuantity;
-    db.transaction(tx => {
-      tx.executeSql('UPDATE list SET quantity = (?) WHERE id = (?)', [newQuantity, tempItem.id])
-    })
     updateListFromDatabase()
   }
 
@@ -192,26 +181,6 @@ export default function ItemListScreen({
       difference < 0 ? 'black' :
         difference === 0 ? 'red' :
           difference <= 5 ? `orange` : 'green')
-  }
-
-  const RenderExpiryDateLabel = ({ expiryDate }) => {
-    if (!expiryDate) {
-      return (
-        <Text style={{ ...styles.labelWithBackground, backgroundColor: 'lightgrey', color: 'white', fontWeight: 'bold' }}>No Expiry Date</Text>
-      )
-    }
-
-    const expiryDateObject = new Date(expiryDate)
-
-    const difference = dateDifferenceInDays(expiryDateObject, new Date())
-    const labelString =
-      difference < 0 ? 'Expired' :
-        difference === 0 ? 'Expiring Today' :
-          difference === 1 ? `Expiring Tomorrow` : `Expiring in ${difference} days`
-
-    return (
-      <Text style={{ ...styles.labelWithBackground, backgroundColor: getExpiryDateLabelColor(expiryDateObject), color: 'white', fontWeight: 'bold' }}>{labelString}</Text>
-    )
   }
 
   const bottomSheetRef = useRef(null);

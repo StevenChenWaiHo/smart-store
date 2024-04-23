@@ -102,30 +102,19 @@ export default function AddItemScreen({ route }) {
         })
     }
 
-    const addItemToList = async (event) => {
-        console.log(item)
-        if (item.itemName === '') {
-            alert('Item Name cannot be empty')
-            return;
-        }
-
-        if (!item.quantity || item.quantity < 0) {
-            alert('Quantity cannot be empty or less than 0')
-            return;
-        }
-
+    const addItemToList = async (itemData) => {
         var notificationId = null
-        if (item?.date) {
-            notificationId = await schedulePushNotification(item)
+        if (itemData?.date) {
+            notificationId = await schedulePushNotification(itemData)
         }
 
         db.transaction(tx => {
-            tx.executeSql('INSERT INTO list (itemName, date, quantity, image, notificationId, barcode, remarks) values (?, ?, ?, ?, ?, ?, ?)', [item.itemName, item.date, item.quantity, item.image, notificationId, item.barcode, item.remarks],
+            tx.executeSql('INSERT INTO list (itemName, date, quantity, image, notificationId, barcode, remarks) values (?, ?, ?, ?, ?, ?, ?)', [itemData.itemName, itemData.date, itemData.quantity, itemData.image, notificationId, itemData.barcode, itemData.remarks],
                 (txObj, resultList) => {
-                    ToastAndroid.show(`Added Item - ${item.itemName}`, ToastAndroid.SHORT);
+                    ToastAndroid.show(`Added Item - ${itemData.itemName}`, ToastAndroid.SHORT);
                     setItemStatus({ editing: false, scanned: false })
                     resetItem();
-                    console.log('Add to List', item)
+                    console.log('Add to List', itemData)
                 },
                 (txObj, error) => alert(error))
         })
@@ -134,13 +123,13 @@ export default function AddItemScreen({ route }) {
         }
         if (barcodeFound.from === 'sql') {
             db.transaction(tx => {
-                tx.executeSql('UPDATE barcodeMap SET itemName = (?), quantity = (?), image = (?) WHERE barcode = (?)', [item.itemName, item.quantity, item.image, item.barcode],
+                tx.executeSql('UPDATE barcodeMap SET itemName = (?), quantity = (?), image = (?) WHERE barcode = (?)', [itemData.itemName, itemData.quantity, itemData.image, itemData.barcode],
                     (txObj, resultList) => { },
                     (txObj, error) => console.log(error))
             })
         } else {
             db.transaction(tx => {
-                tx.executeSql('INSERT INTO barcodeMap (barcode, itemName, quantity, image) values (?, ?, ?, ?)', [item.barcode, item.itemName, item.quantity, item.image],
+                tx.executeSql('INSERT INTO barcodeMap (barcode, itemName, quantity, image) values (?, ?, ?, ?)', [itemData.barcode, itemData.itemName, itemData.quantity, itemData.image],
                     (txObj, resultList) => { },
                     (txObj, error) => console.log(error))
             })
@@ -539,17 +528,16 @@ export default function AddItemScreen({ route }) {
                     onChange={handleBottomSheetChanged}
                     animationConfigs={animationConfigs}
                     contentContainerStyle={styles.bottomSheetContainer}>
-                        {itemStatus.editing ? (
-                            <EditItemForm
-                                itemInEdit={item}
-                                setItemInEdit={setItem}
-                                handleCancel={() => setItemStatus({ editing: false, scanned: false })}
-                                rightButtonText='Add To List'
-                                handleSubmit={() => addItemToList()}
-                                handleChangePhotoButton={() => setTakingPhoto(true)} />
-                        ) :
-                            itemStatus.scanned ? (RenderBottomSheetWhenScanned)
-                                : <><RenderEmptySheet /></>}
+                    {itemStatus.editing ? (
+                        <EditItemForm
+                            itemInEdit={item}
+                            handleCancel={() => setItemStatus({ editing: false, scanned: false })}
+                            rightButtonText='Add To List'
+                            handleSubmit={addItemToList}
+                            handleChangePhotoButton={() => setTakingPhoto(true)} />
+                    ) :
+                        itemStatus.scanned ? (RenderBottomSheetWhenScanned)
+                            : <><RenderEmptySheet /></>}
                 </BottomSheet>
 
             </View>
