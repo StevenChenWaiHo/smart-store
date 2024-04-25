@@ -158,17 +158,14 @@ export default function ItemListScreen({
   }
 
   const deleteItem = (i, j) => {
-    const tempItem = list[i].dates[j]
+    const tempItem = filteredList[i].dates[j]
     const tempItemId = tempItem.id
-    list[i].dates.splice(j, 1)
-    if (list[i].dates.length <= 0) {
-      list.splice(i, 1)
-    }
     cancelScheduledNotificationAsync(tempItem.notificationId)
     db.transaction(tx => {
       tx.executeSql('DELETE FROM list WHERE id = (?)', [tempItemId])
     })
-    forceUpdate(1)
+    updateListFromDatabase()
+    // forceUpdate(1)
   }
 
   const onRefresh = () => {
