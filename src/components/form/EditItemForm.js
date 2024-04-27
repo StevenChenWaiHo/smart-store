@@ -20,8 +20,6 @@ export default EditItemForm = ({
     handleChangePhotoButton,
     rightButtonText,
 }) => {
-    console.log("Item in Edit", itemInEdit)
-
     const defaultItem = useMemo(() => ({
         ...itemInEdit,
         quantity: itemInEdit?.quantity || 1,
@@ -32,7 +30,6 @@ export default EditItemForm = ({
     const { control, setValue, getValues, handleSubmit: formSubmit, watch, reset } = useForm({ defaultValues: defaultItem })
 
     useEffect(() => {
-        console.log("Updatedddd ", itemInEdit)
         reset(defaultItem)
     }, [itemInEdit])
 

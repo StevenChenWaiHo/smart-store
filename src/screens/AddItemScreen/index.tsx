@@ -6,7 +6,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import BottomSheet, { useBottomSheetSpringConfigs } from '@gorhom/bottom-sheet';
 import { Easing } from 'react-native-reanimated';
-import { Camera, CameraType } from 'expo-camera';
+import { BarCodeScanningResult, Camera, CameraType } from 'expo-camera';
 import { styles } from '../../styles/global/globalStyle'
 import { Icon } from '@rneui/themed';
 import { useIsFocused } from '@react-navigation/native';
@@ -32,7 +32,7 @@ Notifications.setNotificationHandler({
 });
 
 
-export default function AddItemScreen({ route }) {
+export default function AddItemScreen() {
     const db = openDatabase();
 
     const [hasPermission, requestPermission] = Camera.useCameraPermissions();
@@ -50,7 +50,7 @@ export default function AddItemScreen({ route }) {
 
     const focused = useIsFocused();
     
-    const dateToInteger = (date) => {
+    const dateToInteger = (date: Date) => {
         return Math.floor(date.getTime())
     }
     
@@ -65,7 +65,7 @@ export default function AddItemScreen({ route }) {
     
     const [item, setItem] = useState<Item>(emptyItem)
 
-    const setItemHandler = (newData) => {
+    const setItemHandler = (newData: Partial<Item>) => {
         setItem(prev => ({ ...prev, ...newData }))
     }
 
@@ -165,7 +165,7 @@ export default function AddItemScreen({ route }) {
         }
     }
 
-    const handleBarCodeScanned = (barcode) => {
+    const handleBarCodeScanned = (barcode: BarCodeScanningResult) => {
         if (itemStatus.editing) {
             return;
         }
@@ -211,9 +211,9 @@ export default function AddItemScreen({ route }) {
         setShowDatePicker(!showDatePicker)
     }
 
-    const onChangeDate = ({ type }, selectedDate) => {
+    const onChangeDate = ({ type }: {type: string}, selectedDate: Date | undefined) => {
         if (type == "set") {
-            const currentDate = selectedDate;
+            const currentDate = selectedDate || new Date();
             if (Platform.OS === "android") {
                 toggleDatePicker();
             }
@@ -257,7 +257,7 @@ export default function AddItemScreen({ route }) {
 
 
 
-    const onChangeQuantity = (number, type) => {
+    const onChangeQuantity = (number: number, type: string) => {
         setItemHandler({ quantity: number })
     }
 
@@ -315,7 +315,7 @@ export default function AddItemScreen({ route }) {
         }
     }, [itemStatus, takingPhoto])
 
-    const handleBottomSheetChanged = (toPos) => {
+    const handleBottomSheetChanged = (toPos: number) => {
         // Finish taking Photo
         if (takingPhoto && toPos === 0) {
             setTakingPhoto(false);
