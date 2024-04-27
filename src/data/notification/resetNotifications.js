@@ -1,7 +1,7 @@
 import { cancelAllScheduledNotificationsAsync } from "expo-notifications";
 import debugLog from "../debug/debugLog";
 import openDatabase from "../SQLite/openDatabase";
-import updateItem from "../SQLite/item/update/updateItem";
+import updateItem from "../item/update/updateItem";
 
 export default async function resetNotifications() {
     const db = openDatabase()

@@ -11,6 +11,7 @@ import { Badge } from "@rneui/themed";
 import DropdownListItem from "./dropdown/DropdownListItem";
 import getStorageList from "../../data/storage/getStorageList";
 import { useForm, Controller } from "react-hook-form";
+import { DEFAULT_IMAGE } from "../../constants/image";
 
 export default EditItemForm = ({
     itemInEdit = {},
@@ -319,7 +320,7 @@ export default EditItemForm = ({
                             style={styles.fullExpandedBottomSheetImageContainer}
                             onPress={handleChangePhotoButton}>
                             <Image
-                                source={{ uri: itemInEdit?.image }}
+                                source={{ uri: itemInEdit?.image || DEFAULT_IMAGE }}
                                 style={styles.bottomSheetImage} />
                             <View style={styles.imageOverlayTextContainer}>
                                 <Text style={styles.imageOverlayText}>Edit</Text>

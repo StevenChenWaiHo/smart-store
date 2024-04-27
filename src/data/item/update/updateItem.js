@@ -1,6 +1,6 @@
 import * as Notifications from 'expo-notifications';
-import schedulePushNotification from '../../../notification/schedulePushNotification'
-import debugLog from '../../../debug/debugLog';
+import schedulePushNotification from '../../notification/schedulePushNotification'
+import debugLog from '../../debug/debugLog';
 
 const dataToSQLFields = (data) => {
     return Object.keys(data).map((column) => {

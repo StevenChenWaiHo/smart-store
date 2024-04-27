@@ -54,7 +54,7 @@ export default function ItemListView({
           content={
             <>
               <Image
-                source={{ uri: item?.dates?.[0]?.image }}
+                source={{ uri: item?.dates?.[0]?.image || DEFAULT_IMAGE }}
                 style={styles.itemListImage} />
               <ListItem.Content style={styles.listItemContent}>
                 <RenderExpiryDateLabel expiryDate={item?.dates?.[0].date} />
@@ -100,7 +100,7 @@ export default function ItemListView({
               >
                 <View style={{ ...styles.accordionListContainer, flexDirection: 'row' }}>
                   <Image
-                    source={{ uri: date.image }}
+                    source={{ uri: date.image || DEFAULT_IMAGE }}
                     style={styles.itemListImage} />
                   <ListItem.Content style={styles.listItemContent}>
                     <RenderExpiryDateLabel expiryDate={date.date} />
@@ -142,7 +142,7 @@ export default function ItemListView({
         >
           <>
             <Image
-              source={{ uri: item?.dates?.[0].image }}
+              source={{ uri: item?.dates?.[0].image || DEFAULT_IMAGE}}
               style={styles.itemListImage} />
             <ListItem.Content style={styles.listItemContent}>
               <RenderExpiryDateLabel expiryDate={item?.dates?.[0].date} />

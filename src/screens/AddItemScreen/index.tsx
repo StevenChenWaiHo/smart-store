@@ -1,6 +1,6 @@
 
 import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet, Text, View, Button, ToastAndroid, TextInput, Pressable, TouchableOpacity, Image, Keyboard } from 'react-native';
+import { Platform, StyleSheet, Text, View, Button, ToastAndroid, TextInput, Pressable, TouchableOpacity, Image, Keyboard, ImageStyle } from 'react-native';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -20,6 +20,8 @@ import openDatabase from '../../data/SQLite/openDatabase'
 import EditItemForm from '../../components/form/EditItemForm';
 import dateNumberToString from '../../data/date/dateNumberToString';
 import schedulePushNotification from '../../data/notification/schedulePushNotification';
+import { Item, SavedItem } from '../../types/item';
+import { DEFAULT_IMAGE } from '../../constants/image';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -29,9 +31,9 @@ Notifications.setNotificationHandler({
     }),
 });
 
+
 export default function AddItemScreen({ route }) {
     const db = openDatabase();
-    const defaultImage = 'https://cdn4.iconfinder.com/data/icons/picture-sharing-sites/32/No_Image-1024.png';
 
     const [hasPermission, requestPermission] = Camera.useCameraPermissions();
     const [itemStatus, setItemStatus] = useState({ editing: false, scanned: false }); // Combine two state to avoid duplicate triggers
@@ -46,23 +48,22 @@ export default function AddItemScreen({ route }) {
     const [takingPhoto, setTakingPhoto] = useState(false);
     const [barcodeFound, setBarcodeFound] = useState({ status: false, from: '' })
 
-    const [item, setItem] = useState(emptyItem)
-
     const focused = useIsFocused();
-
+    
     const dateToInteger = (date) => {
         return Math.floor(date.getTime())
     }
-
+    
     const emptyItem = {
         barcode: '',
-        image: defaultImage,
+        image: DEFAULT_IMAGE,
         date: Math.floor(new Date().getTime()), // INTEGER NUMBER
         itemName: '',
         quantity: 1,
         remarks: '',
     }
-
+    
+    const [item, setItem] = useState<Item>(emptyItem)
 
     const setItemHandler = (newData) => {
         setItem(prev => ({ ...prev, ...newData }))
@@ -94,7 +95,7 @@ export default function AddItemScreen({ route }) {
         setBarcodeFound({ status: false, from: '' })
     }
 
-    const updatedScannedItemFromList = (item) => {
+    const updatedScannedItemFromList = (item: SavedItem) => {
         setItemHandler({
             itemName: item?.itemName,
             quantity: item?.quantity,
@@ -102,10 +103,14 @@ export default function AddItemScreen({ route }) {
         })
     }
 
-    const addItemToList = async (itemData) => {
-        var notificationId = null
+    const addItemToList = async (itemData: Item) => {
+        var notificationId: string | null = null
         if (itemData?.date) {
-            notificationId = await schedulePushNotification(itemData)
+            try {
+                notificationId = await schedulePushNotification(itemData) || null
+            } catch (error) {
+                alert(error)
+            }
         }
 
         db.transaction(tx => {
@@ -116,7 +121,7 @@ export default function AddItemScreen({ route }) {
                     resetItem();
                     console.log('Add to List', itemData)
                 },
-                (txObj, error) => alert(error))
+                (txObj, error) => { alert(error); return true})
         })
         if (!itemStatus.scanned) {
             return
@@ -125,22 +130,30 @@ export default function AddItemScreen({ route }) {
             db.transaction(tx => {
                 tx.executeSql('UPDATE barcodeMap SET itemName = (?), quantity = (?), image = (?) WHERE barcode = (?)', [itemData.itemName, itemData.quantity, itemData.image, itemData.barcode],
                     (txObj, resultList) => { },
-                    (txObj, error) => console.log(error))
+                    (txObj, error) => {console.log(error); return true})
             })
         } else {
             db.transaction(tx => {
                 tx.executeSql('INSERT INTO barcodeMap (barcode, itemName, quantity, image) values (?, ?, ?, ?)', [itemData.barcode, itemData.itemName, itemData.quantity, itemData.image],
                     (txObj, resultList) => { },
-                    (txObj, error) => console.log(error))
+                    (txObj, error) => {console.log(error); return true})
             })
         }
     }
 
 
     // Camera
-    const cameraRef = useRef(null);
+    const cameraRef = useRef<Camera>(null);
 
     const takePicture = async () => {
+        if (!cameraRef.current) {
+            alert('Camera is not ready')
+            return 
+        }
+        if (!bottomSheetRef.current) {
+            alert('Bottom s is not ready')
+            return
+        }
         const picture = await cameraRef.current.takePictureAsync();
         setItemHandler({ image: picture.uri });
         bottomSheetRef.current.expand();
@@ -174,7 +187,8 @@ export default function AddItemScreen({ route }) {
                                     updatedScannedItemFromList({
                                         itemName: json?.product?.product_name || 'Not Found',
                                         quantity: Number(json?.product?.quantity) || 1,
-                                        image: json?.product?.image_url || defaultImage,
+                                        image: json?.product?.image_url || DEFAULT_IMAGE,
+                                        barcode: barcode.data // Not Used
                                     })
                                 } else {
                                     setBarcodeFound({ status: false, from: '' });
@@ -182,7 +196,7 @@ export default function AddItemScreen({ route }) {
                             }).catch((error) => { console.log(error); setBarcodeFound({ status: false, from: '' }); })
                     }
                 },
-                (txObj, error) => console.log(error))
+                (txObj, error) => { console.log(error);  return true})
         })
     };
 
@@ -231,7 +245,7 @@ export default function AddItemScreen({ route }) {
                         onChange={onChangeDate} />)
                 }
             </>) :
-            (Platform.OS === 'android' ? (
+            (Platform.OS === "ios" ? (
                 <DateTimePicker
                     minimumDate={new Date()}
                     mode='date'
@@ -248,7 +262,7 @@ export default function AddItemScreen({ route }) {
     }
 
     // Bottom Sheet
-    const bottomSheetRef = useRef(null);
+    const bottomSheetRef = useRef<BottomSheet>(null);
 
     const handleItemEdit = () => {
         setItemStatus({ editing: true, scanned: true })
@@ -276,6 +290,9 @@ export default function AddItemScreen({ route }) {
     }
 
     useEffect(() => {
+        if (!bottomSheetRef.current) {
+            return
+        }
         if (takingPhoto) {
             bottomSheetRef.current.close();
             return
@@ -329,8 +346,8 @@ export default function AddItemScreen({ route }) {
                 <View style={{ ...styles.topCenteredContainer, flex: 2 }}>
                     <View style={styles.bottomSheetImageContainer}>
                         <Image
-                            source={{ uri: item?.image }}
-                            style={styles.bottomSheetImage} />
+                            source={{ uri: item?.image || DEFAULT_IMAGE }}
+                            style={styles.bottomSheetImage as ImageStyle} />
                     </View>
                 </View>
                 <View style={{ flexDirection: 'column', flex: 4 }}>
@@ -346,13 +363,11 @@ export default function AddItemScreen({ route }) {
                         <View style={{ ...styles.buttonContainer, flex: 2 }}>
                             <Button
                                 onPress={handleItemEdit}
-                                style={styles.button}
                                 title="Edit Details" />
                         </View>
                         <View style={{ ...styles.buttonContainer, flex: 2 }}>
                             <Button
-                                onPress={addItemToList}
-                                style={styles.button}
+                                onPress={() => addItemToList(item)}
                                 title="Add to List" />
                         </View>
                     </View>
@@ -368,7 +383,6 @@ export default function AddItemScreen({ route }) {
                         <View style={{ ...styles.bottomRightContainer, flex: 1 }}>
                             <Button
                                 onPress={handleItemEdit}
-                                style={styles.button}
                                 title="Add Item" />
                         </View>
                     </View>
@@ -445,10 +459,10 @@ export default function AddItemScreen({ route }) {
     // )
 
     // Notification
-    const [expoPushToken, setExpoPushToken] = useState('');
-    const [notification, setNotification] = useState(false);
-    const notificationListener = useRef();
-    const responseListener = useRef();
+    const [expoPushToken, setExpoPushToken] = useState<string | undefined>('');
+    const [notification, setNotification] = useState<Notifications.Notification | undefined>();
+    const notificationListener = useRef<Notifications.Subscription | undefined>();
+    const responseListener = useRef<Notifications.Subscription | undefined>();
 
     useEffect(() => {
         registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
@@ -462,13 +476,16 @@ export default function AddItemScreen({ route }) {
         });
 
         return () => {
+            if (!notificationListener.current || !responseListener.current) {
+                return
+            }
             Notifications.removeNotificationSubscription(notificationListener.current);
             Notifications.removeNotificationSubscription(responseListener.current);
         };
     }, []);
 
     async function registerForPushNotificationsAsync() {
-        let token;
+        let token: string = '';
 
         if (Platform.OS === 'android') {
             await Notifications.setNotificationChannelAsync('default', {
@@ -527,7 +544,7 @@ export default function AddItemScreen({ route }) {
                     enablePanDownToClose={!itemStatus.editing}
                     onChange={handleBottomSheetChanged}
                     animationConfigs={animationConfigs}
-                    contentContainerStyle={styles.bottomSheetContainer}>
+                    containerStyle={styles.bottomSheetContainer}>
                     {itemStatus.editing ? (
                         <EditItemForm
                             itemInEdit={item}
