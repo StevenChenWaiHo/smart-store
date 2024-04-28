@@ -21,3 +21,14 @@ https://github.com/StevenChenWaiHo/smart-store/assets/122108964/e3f1ac1e-f6e4-40
 
 # Special Thanks
 * <a href="https://world.openfoodfacts.org/">Open Food Facts<a> for providing barcode-to-product API
+
+# For developers
+
+## Notes
+
+1. The project requires custom patches for it to works the patches are in the folder 'patches', npm install should patch the packages automatically. If not use patch-packages to fix it.
+
+## Error
+For error:
+java.lang.SecurityException: Shell does not have permission to access user 150
+https://github.com/expo/expo/issues/22473#issuecomment-1546718389

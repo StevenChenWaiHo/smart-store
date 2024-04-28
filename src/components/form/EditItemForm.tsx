@@ -12,14 +12,29 @@ import DropdownListItem from "./dropdown/DropdownListItem";
 import getStorageList from "../../data/storage/getStorageList";
 import { useForm, Controller } from "react-hook-form";
 import { DEFAULT_IMAGE } from "../../constants/image";
+import { Item } from "../../types/item";
 
-export default EditItemForm = ({
-    itemInEdit = {},
+interface EditItemFormInterface {
+    itemInEdit: Item,
+    handleSubmit: (data: Item) => void,
+    handleCancel: () => void,
+    handleChangePhotoButton: () => void,
+    rightButtonText: string,
+}
+
+export interface ItemInEdit extends Item{
+    id?: number,
+    haveDate?: boolean,
+    newStorage?: boolean
+}
+
+export default function EditItemForm ({
+    itemInEdit,
     handleSubmit,
     handleCancel,
     handleChangePhotoButton,
     rightButtonText,
-}) => {
+}: EditItemFormInterface) {
     const defaultItem = useMemo(() => ({
         ...itemInEdit,
         quantity: itemInEdit?.quantity || 1,
@@ -27,13 +42,14 @@ export default EditItemForm = ({
         newStorage: false
     }), [itemInEdit])
 
+    console.log("Item in Edit", itemInEdit)
     const { control, setValue, getValues, handleSubmit: formSubmit, watch, reset } = useForm({ defaultValues: defaultItem })
 
     useEffect(() => {
         reset(defaultItem)
     }, [itemInEdit])
 
-    const onSubmitButtonPress = async (item) => {
+    const onSubmitButtonPress = async (item: ItemInEdit) => {
         // TODO: Move this to react hook form logic
         if (item.itemName === '') {
             alert('Item Name cannot be empty')
@@ -91,14 +107,14 @@ export default EditItemForm = ({
             updateStorageList()
         }, [])
 
-        const handleOpen = async (bool) => {
+        const handleOpen = async (bool: boolean) => {
             if (bool) {
 
             }
             setOpen(bool)
         }
 
-        const onSelectItem = (storage) => {
+        const onSelectItem = (storage: string) => {
             const isNewStorage = storage.custom !== undefined
             setNewStorage(isNewStorage)
             setValue("newStorage", isNewStorage)

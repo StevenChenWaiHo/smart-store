@@ -40,6 +40,7 @@ import dateNumberToString from "../../data/date/dateNumberToString";
 import schedulePushNotification from "../../data/notification/schedulePushNotification";
 import { Item, SavedItem } from "../../types/item";
 import { DEFAULT_IMAGE } from "../../constants/image";
+import { DEFAULT_ITEM } from "../../constants/item";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -74,16 +75,8 @@ export default function AddItemScreen() {
     return Math.floor(date.getTime());
   };
 
-  const emptyItem = {
-    barcode: "",
-    image: DEFAULT_IMAGE,
-    date: Math.floor(new Date().getTime()), // INTEGER NUMBER
-    itemName: "",
-    quantity: 1,
-    remarks: "",
-  };
 
-  const [item, setItem] = useState<Item>(emptyItem);
+  const [item, setItem] = useState<Item>(DEFAULT_ITEM);
 
   const setItemHandler = (newData: Partial<Item>) => {
     setItem((prev) => ({ ...prev, ...newData }));
@@ -111,7 +104,7 @@ export default function AddItemScreen() {
   // }
 
   const resetItem = () => {
-    setItem(emptyItem);
+    setItem(DEFAULT_ITEM);
     setBarcodeFound({ status: false, from: "" });
   };
 

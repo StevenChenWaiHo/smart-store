@@ -1,0 +1,1 @@
+type DateNumber = number
