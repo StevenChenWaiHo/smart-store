@@ -666,6 +666,7 @@ export default function AddItemScreen() {
           {itemStatus.editing ? (
             <EditItemForm
               itemInEdit={item}
+              setItemInEdit={setItem}
               handleCancel={() =>
                 setItemStatus({ editing: false, scanned: false })
               }

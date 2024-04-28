@@ -251,6 +251,7 @@ export default function ItemListScreen({
       >
         <EditItemForm
           itemInEdit={itemInEdit}
+          setItemInEdit={setItemInEdit}
           handleCancel={() => {
             bottomSheetRef.current ? bottomSheetRef.current.close() : {};
           }}
