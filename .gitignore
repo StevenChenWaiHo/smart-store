@@ -45,3 +45,6 @@ yarn-error.*
 
 # Program Data
 %ProgramData%
+
+# Service Account
+smart-store-service-account.json

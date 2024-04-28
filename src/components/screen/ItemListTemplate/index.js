@@ -20,6 +20,9 @@ import getImageFromCamera from '../../../data/image/utils/getImageFromCamera'
 import { Camera } from "expo-camera";
 import dateDifferenceInDays from "../../../data/date/dateDifferenceInDays";
 import ItemListView from "../../listView/ItemListView";
+import { DEFAULT_IMAGE } from "../../../constants/image";
+
+const UNNAMED_ITEM_NAME = "Unknown Item"
 
 export default function ItemListScreen({
   sqlStatement = "SELECT * FROM list ORDER BY CASE WHEN date IS NULL THEN 1 ELSE 0 END, date",
@@ -43,7 +46,7 @@ export default function ItemListScreen({
   const [itemInEdit, setItemInEdit] = useState({})
 
   const [searchQuery, setSearchQuery] = useState("")
-  const filteredList = list.filter((item) => item?.itemName.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredList = list.filter((item) => (item?.itemName || UNNAMED_ITEM_NAME).toLowerCase().includes(searchQuery.toLowerCase()))
 
   const updateList = (databaseList) => {
     setRefreshing(true)
@@ -53,19 +56,20 @@ export default function ItemListScreen({
       const item = {
         id: entry.id,
         date: entry.date,
-        quantity: entry.quantity,
-        image: entry.image,
-        notificationId: entry.notificationId
+        quantity: entry.quantity || 1,
+        image: entry.image || DEFAULT_IMAGE,
+        notificationId: entry.notificationId,
+        itemName: entry.itemName || UNNAMED_ITEM_NAME
       }
-      if (itemToIndex.has(entry.itemName)) {
-        newList[itemToIndex.get(entry.itemName)].dates.push(item);
+      if (itemToIndex.has(item.itemName)) {
+        newList[itemToIndex.get(item.itemName)].dates.push(item);
       } else {
         const pushedToIndex = newList.push(
           {
-            itemName: entry.itemName,
+            itemName: item.itemName,
             dates: [item]
           }) - 1
-        itemToIndex.set(entry.itemName, pushedToIndex)
+        itemToIndex.set(item.itemName, pushedToIndex)
       }
     });
     setList(newList);
@@ -83,7 +87,7 @@ export default function ItemListScreen({
   const sqlDataToState = (item) => {
     return {
       id: item?.id,
-      itemName: item?.itemName || '',
+      itemName: item?.itemName || UNNAMED_ITEM_NAME,
       quantity: item?.quantity || 1,
       image: item?.image || '',
       barcode: item?.barcode || '',

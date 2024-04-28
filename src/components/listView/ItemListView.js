@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Header, ListItem, Icon, Button, SearchBar } from '@rneui/themed';
 import { Text, Image, ActivityIndicator, FlatList, RefreshControl, View, TouchableOpacity, Platform } from "react-native";
 import dateDifferenceInDays from "../../data/date/dateDifferenceInDays";
+import { DEFAULT_IMAGE } from "../../constants/image";
 
 const getExpiryDateLabelColor = (expiryDate) => {
   const difference = dateDifferenceInDays(expiryDate, new Date())

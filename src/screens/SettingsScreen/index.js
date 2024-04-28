@@ -20,6 +20,7 @@ import resetNotifications from '../../data/notification/resetNotifications';
 import getAllNotifications from '../../data/notification/getAllNotifications';
 import getList from '../../data/SQLite/getList';
 import getSavedItems from '../../data/SQLite/getSavedItems';
+import addNullItem from '../../data/item/utils/addNullItem';
 
 const SettingTab = ({
   onPress,
@@ -71,6 +72,12 @@ export default function SettingsScreen({ route }) {
                 label="Get Saved Items"
                 icon={<Icon name='list' type='font-awesome' />}
                 onPress={getSavedItems}
+              />
+
+              <SettingTab
+                label="Add Null Item (for testing purpose)"
+                icon={<Icon name='list' type='font-awesome' />}
+                onPress={addNullItem}
               />
 
             </View>
