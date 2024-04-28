@@ -33,6 +33,7 @@ import * as SQLite from "expo-sqlite";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
+// @ts-ignore
 import Counter from "react-native-counters";
 import openDatabase from "../../data/SQLite/openDatabase";
 import EditItemForm from "../../components/form/EditItemForm";
@@ -296,7 +297,7 @@ export default function AddItemScreen() {
           <TextInput
             placeholder="Enter Date here"
             style={styles.input}
-            value={dateNumberToString(item?.date)}
+            value={dateNumberToString(item?.date || Math.floor(new Date().getTime()))}
             editable={false}
             onPressIn={toggleDatePicker}
           />
@@ -306,7 +307,7 @@ export default function AddItemScreen() {
             minimumDate={new Date()}
             mode="date"
             display={"calendar"}
-            value={new Date(item?.date)}
+            value={new Date(item?.date || Math.floor(new Date().getTime()))}
             onChange={onChangeDate}
           />
         )}
@@ -316,7 +317,7 @@ export default function AddItemScreen() {
         minimumDate={new Date()}
         mode="date"
         display="spinner"
-        value={new Date(item?.date)}
+        value={new Date(item?.date || Math.floor(new Date().getTime()))}
         onChange={onChangeDate}
         style={styles.datePickerIos}
       />

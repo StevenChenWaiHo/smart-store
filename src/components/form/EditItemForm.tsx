@@ -10,14 +10,17 @@ import {
   Platform,
   ViewProps,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
+// @ts-ignore
 import Counter from "react-native-counters";
 import { TouchableOpacity, TouchableWithoutFeedback } from "react-native";
 import { styles } from "../../styles/global/globalStyle";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import dateNumberToString from "../../data/date/dateNumberToString";
 import { CheckBox, ListItem } from "@rneui/themed";
-import DropDownPicker from "react-native-dropdown-picker";
+import DropDownPicker, { ItemType } from "react-native-dropdown-picker";
 import { Badge } from "@rneui/themed";
 import DropdownListItem from "./dropdown/DropdownListItem";
 import getStorageList from "../../data/storage/getStorageList";
@@ -27,24 +30,22 @@ import { Item, ItemInDatabase } from "../../types/item";
 import { ButtonProps } from "react-native";
 
 interface EditItemFormInterface {
-  itemInEdit: ItemInEdit;
-  setItemInEdit: (data: ItemInEdit) => void;
+  itemInEdit: ItemInForm;
+  setItemInEdit: (data: Item) => void;
   handleSubmit: (data: Item) => void;
   handleCancel: () => void;
   handleChangePhotoButton: () => void;
   rightButtonText: string;
 }
 
-export interface ItemInEdit extends Item {
+export interface ItemInForm extends Item {
   id?: number;
   haveDate?: boolean;
   newStorage?: boolean;
 }
 
-interface StorageInInput {
-  custom: boolean;
-  label: string;
-  value: string;
+interface StorageInInput extends ItemType<string>, Storage {
+  custom?: boolean
 }
 
 export default function EditItemForm({
@@ -81,7 +82,7 @@ export default function EditItemForm({
     reset(defaultItem);
   }, [itemInEdit]);
 
-  const itemInEditStateToItem = (item: ItemInEdit) => {
+  const itemInEditStateToItem = (item: ItemInForm) => {
     const { haveDate, newStorage, storage, ...itemData } = item;
     if (!haveDate) {
       itemData["date"] = null;
@@ -89,7 +90,7 @@ export default function EditItemForm({
     return itemData;
   };
 
-  const onSubmitButtonPress = async (itemInEdit: ItemInEdit) => {
+  const onSubmitButtonPress = async (itemInEdit: ItemInForm) => {
     // TODO: Move this to react hook form logic
     if (itemInEdit.itemName === "") {
       alert("Item Name cannot be empty");
@@ -139,7 +140,7 @@ export default function EditItemForm({
   // Storage
   const StorageInput = () => {
     const [open, setOpen] = useState(false);
-    const [storageList, setStorageList] = useState([]);
+    const [storageList, setStorageList] = useState<StorageInInput[]>([]);
     const [newStorage, setNewStorage] = useState(false);
 
     useEffect(() => {
@@ -159,7 +160,8 @@ export default function EditItemForm({
     };
 
     const updateStorageList = async () => {
-      setStorageList(await getStorageList());
+      const storageList = await getStorageList();
+      setStorageList(storageList);
     };
 
     return (
@@ -167,6 +169,7 @@ export default function EditItemForm({
         <Text style={styles.inputLabel}>
           Storage:{" "}
           {newStorage ? (
+            // @ts-ignore
             <Badge top={2} value="New Storage" status="success" />
           ) : (
             <></>
@@ -178,12 +181,12 @@ export default function EditItemForm({
           render={({ field: { onChange, value } }) => (
             <DropDownPicker
               open={open}
-              value={value}
+              value={value || null}
               items={storageList}
-              setOpen={handleOpen}
+              setOpen={(setStateFunction) => handleOpen(setStateFunction(false))}
               setValue={(setStateFunction) => onChange(setStateFunction(null))} // Dropdown Picker Library have very strange behavior
               setItems={setStorageList}
-              onSelectItem={onSelectItem}
+              onSelectItem={onSelectItem as (item: ItemType<string>) => void}
               searchable={true}
               style={styles.input}
               showBadgeDot={true}
@@ -216,6 +219,7 @@ export default function EditItemForm({
               closeOnBackPressed={true}
               itemSeparator={true}
               listItemContainerStyle={{ height: 60, borderRadius: 10 }}
+              // @ts-ignore
               renderListItem={DropdownListItem}
               // Custom Item
               addCustomItem={true}
@@ -266,9 +270,9 @@ export default function EditItemForm({
       setHaveDate(!haveDate);
     };
 
-    const onChangeDate = ({ type }: { type: string }, selectedDate: Date) => {
-      if (type == "set") {
-        const currentDate = selectedDate;
+    const onChangeDate = (event: DateTimePickerEvent, selectedDate: Date | undefined) => {
+      if (event.type == "set") {
+        const currentDate = selectedDate || new Date();
         if (Platform.OS === "android") {
           toggleDatePicker();
         }
@@ -278,7 +282,11 @@ export default function EditItemForm({
       }
     };
 
-    const RenderExpiryDatePicker = ({ value }) => {
+    const RenderExpiryDatePicker = ({
+      value,
+    }: {
+      value: DateNumber | null;
+    }) => {
       return Platform.OS === "android" ? (
         <Pressable style={styles.inputContainer} onPress={toggleDatePicker}>
           <TextInput

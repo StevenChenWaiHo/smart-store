@@ -1,6 +1,6 @@
 import openDatabase from "../SQLite/openDatabase"
 
-export default async function getStorageList() {
+export default async function getStorageList(): Promise<Storage[]> {
     const db = openDatabase();
     var result;
     await db.transactionAsync(async tx => {
@@ -11,5 +11,5 @@ export default async function getStorageList() {
             console.log(error)
         }
     })
-    return [{label: "Storage 1", value: "1"}]
+    return new Promise(() => [{label: "Storage 1", value: "1"}])
 }

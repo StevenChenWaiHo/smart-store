@@ -22,7 +22,7 @@ import {
 } from "expo-notifications";
 import openDatabase from "../../../data/SQLite/openDatabase";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import EditItemForm, { ItemInEdit } from "../../form/EditItemForm";
+import EditItemForm, { ItemInForm } from "../../form/EditItemForm";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import updateItem from "../../../data/item/update/updateItem";
 import dateNumberToString from "../../../data/date/dateNumberToString";
@@ -108,7 +108,7 @@ export default function ItemListScreen({
     });
   };
 
-  const sqlDataToState = (item: ItemInDatabase) : ItemInEdit => {
+  const sqlDataToState = (item: ItemInDatabase) : ItemInForm => {
     return {
       id: item?.id,
       itemName: item?.itemName || UNNAMED_ITEM_NAME,
@@ -117,6 +117,7 @@ export default function ItemListScreen({
       barcode: item?.barcode || "",
       date: item?.date,
       remarks: item?.remarks || "",
+      notificationId: item?.notificationId
     };
   };
 
