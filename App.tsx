@@ -129,7 +129,7 @@ export default function App() {
                   <Icon name='history' />
                 ))
               }} />
-            {/* <Tab.Screen
+            <Tab.Screen
               name="Storage"
               component={StorageScreen}
               options={{
@@ -148,7 +148,7 @@ export default function App() {
                     type='material-community' />
 
                 ))
-              }} /> */}
+              }} />
             {debugMode ? <Tab.Screen
               name="Settings"
               component={SettingsScreen}
