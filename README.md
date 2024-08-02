@@ -24,8 +24,14 @@ https://github.com/StevenChenWaiHo/smart-store/assets/122108964/e3f1ac1e-f6e4-40
 
 # For developers
 
-## Notes
+# Development Enviornment
+```
+npm install
+npm run [start/ios/android/web]
+```
 
+
+## Notes
 1. The project requires custom patches for it to works the patches are in the folder 'patches', npm install should patch the packages automatically. If not use patch-packages to fix it.
 
 ## Error
